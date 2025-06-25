@@ -1,7 +1,13 @@
 import React from 'react';
 import Header from '../components/Header';
 import YourImpact from '../components/YourImpact';
-import { Container, Box, Typography } from '@mui/material';
+import ReceiptScanner from '../components/ReceiptsScanner';
+import AIRecipeGenerator from '../components/AIRecipeGenerator';
+import InventoryTracker from '../components/InventoryTracker';
+import MealPlanner from '../components/MealPlanner';
+import SmartShoppingList from '../components/SmartShoppingList';
+// import Achievements from '../components/Achievements'; from '../components/SmartShoppingList';
+import { Container, Box, Typography ,Grid} from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // Optional theme customization
@@ -19,23 +25,13 @@ const Index = () => {
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <Header />
         <YourImpact />
+        {/* <ReceiptScanner />
+        <AIRecipeGenerator /> */}
 
         {/* Section: Your Impact */}
-        {/* <Box sx={{ py: 8, bgcolor: 'white' }}>
-          <Container maxWidth="lg">
-            <Box mb={4}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Your Impact
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Track your progress in reducing food waste
-              </Typography>
-            </Box>
-            <WasteStats />
-          </Container>
-        </Box> */}
 
-        {/* Uncomment and convert the rest as needed:
+
+        {/* Uncomment and convert the rest as needed: */}
         
         <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
           <Container maxWidth="lg">
@@ -64,7 +60,7 @@ const Index = () => {
               <Grid item xs={12} lg={8}>
                 <Box display="flex" flexDirection="column" gap={4}>
                   <InventoryTracker />
-                  <RecipeSuggestions />
+                  {/* <RecipeSuggestions /> */}
                 </Box>
               </Grid>
               <Grid item xs={12} lg={4}>
@@ -76,6 +72,7 @@ const Index = () => {
             </Grid>
           </Container>
         </Box>
+         {/*
 
         <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
           <Container maxWidth="lg">
