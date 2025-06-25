@@ -25,7 +25,7 @@ const Header = () => {
 
   return (
     <>
-      <AppBar position="static" color="default" elevation={1}>
+      <AppBar position="sticky" color="default" elevation={1}>
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <Box display="flex" alignItems="center" gap={1}>
             <ChefHat size={32} color={theme.palette.success.main} />
@@ -37,7 +37,7 @@ const Header = () => {
           {!isMobile ? (
             <Box display="flex" alignItems="center" gap={2}>
               <Button
-                variant="text"
+                variant="contained"
                 onClick={() => setShowMealPlan(true)}
                 startIcon={<Calendar size={18} />}
               >
