@@ -1,9 +1,9 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import  Home  from "./pages/Home";
+import Index from "../src/app/pages/Index";
+import NotFound from "../src/app/pages/NotFound";
+import  Home  from "../src/app/pages/Home";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {Box} from "@mui/material";
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Typography, Card, CardContent } from '@mui/material';
+import { Box,  Typography, Card, CardContent, Stack } from '@mui/material';
 import { TrendingDown, Leaf, DollarSign, Award } from 'lucide-react';
 
 const stats = [
@@ -35,7 +35,7 @@ const stats = [
 
 const YourImpact = () => {
   return (
-    <Box px={{ xs: 2, sm: 4, md: 8 }} py={6}  width="100%">
+    <Box py={6} width="100%">
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Your Impact
       </Typography>
@@ -43,12 +43,12 @@ const YourImpact = () => {
         Track your progress in reducing food waste
       </Typography>
 
-      <Grid container spacing={3} justifyContent="space-evenly">
+      <Stack direction="row" container gap="2rem" justifyContent="space-between" >
         {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <Card elevation={2} sx={{ width : '100%'}}>
+          <Stack key={index} sx={{ width : '100%'}}>
+            <Card elevation={2}>
               <CardContent>
-                <Box sx={{display: 'flex', flexDirection: 'row' , gap : "2rem", justifyContent : "space-between" , alignItems:"center"}}>
+                <Box sx={{display: 'flex', flexDirection: 'row' , gap : "2rem", alignItems:"center"}}>
                   <Box textAlign="left">
                     <Typography variant="subtitle2" color="text.secondary" mb={0.5}>
                       {stat.title}
@@ -66,9 +66,9 @@ const YourImpact = () => {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Stack>
         ))}
-      </Grid>
+      </Stack>
     </Box>
   );
 };
