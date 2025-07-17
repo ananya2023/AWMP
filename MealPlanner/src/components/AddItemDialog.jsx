@@ -30,7 +30,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
       expiryDate,
     };
 
-    console.log('Adding new item to inventory:', newItem);
+    // console.log('Adding new item to inventory:', newItem);
 
     // Reset and close
     setItemName('');
