@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import YourImpact from '../components/YourImpact';
 import ReceiptScanner from '../components/ReceiptsScanner';
 import AIRecipeGenerator from '../components/AIRecipeGenerator';
+import VoiceRecipeAssistant from '../components/VoiceRecipeAssistant';
 import InventoryTracker from '../components/InventoryTracker';
 import MealPlanner from '../components/MealPlanner';
 import SmartShoppingList from '../components/SmartShoppingList';
@@ -47,8 +48,22 @@ const Index = () => {
               <Grid item xs={12} lg={6}>
                 <ReceiptScanner />
               </Grid>
+            </Grid>
+          </Container>
+        </Box>
+        <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
+          <Container maxWidth="lg">
+            <Box mb={4}>
+              <Typography variant="h5" fontWeight="bold" gutterBottom>
+               What Can I Make Today
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+              Create recipes with your available ingredients
+              </Typography>
+            </Box>
+            <Grid container spacing={4}>
               <Grid item xs={12} lg={6}>
-                <AIRecipeGenerator />
+                <VoiceRecipeAssistant />
               </Grid>
             </Grid>
           </Container>

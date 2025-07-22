@@ -3,6 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs').promises;
+const functions = require('@google-cloud/functions'); // For Google Cloud Functions
+const axios = require('axios');
+const OAuth = require('oauth-1.0a');
+const crypto = require('crypto');
 // const { processReceipt } = require('./documentAI/scanner'); 
 
 // Import the Google Generative AI client library
@@ -15,9 +19,31 @@ if (!GEMINI_API_KEY) {
     console.error('Please set it before running the server: export GEMINI_API_KEY="YOUR_API_KEY_HERE"');
     process.exit(1); // Exit if API key is missing
 }
+const FATSECRET_CONSUMER_KEY = process.env.FATSECRET_CONSUMER_KEY;
+const FATSECRET_CONSUMER_SECRET = process.env.FATSECRET_CONSUMER_SECRET;
+
+if (!FATSECRET_CONSUMER_KEY || !FATSECRET_CONSUMER_SECRET) {
+    console.error("FATSECRET_CONSUMER_KEY and FATSECRET_CONSUMER_SECRET must be set!");
+    process.exit(1); // Exit if API key is missing
+    // In a real app, you'd want to gracefully handle this or prevent deployment
+}
+
+const FATSECRET_API_URL = 'https://platform.fatsecret.com/rest/server.api';
+
+const oauth = OAuth({
+  consumer: {
+    key: FATSECRET_CONSUMER_KEY,
+    secret: FATSECRET_CONSUMER_SECRET
+  },
+  signature_method: 'HMAC-SHA1',
+  hash_function(base_string, key) {
+    return crypto.createHmac('sha1', key).update(base_string).digest('base64');
+  }
+});
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" }); // Use 1.5 Pro for vision capabilities
+
 
 
 const app = express();
@@ -25,7 +51,16 @@ const port = 3001; // Port for our backend server
 const corsOptions = {
   origin: '*',
 };
-
+// Enable CORS for your React app
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // **CHANGE THIS TO YOUR REACT APP'S DOMAIN IN PRODUCTION!**
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // Use CORS to allow communication from your React app (which runs on a different port)
 app.use(cors(corsOptions));
@@ -144,6 +179,76 @@ app.listen(port, () => {
   console.log(`Meal Rescue backend listening on http://localhost:${port}`);
 });
 
+/**
+ * Cloud Function to search for recipes on FatSecret.
+ * Triggered by an HTTP request from the React frontend.
+ */
+app.post('/getRecipeFromFatSecret', async (req, res) => {
+  const { searchExpression } = req.body; // e.g., "chicken and rice", "vegetarian pasta"
+
+  if (!searchExpression) {
+    return res.status(400).json({ error: "Missing search expression." });
+  }
+
+  const request_data = {
+    url: FATSECRET_API_URL,
+    method: 'POST', // FatSecret often prefers POST for method-based API calls
+    data: {
+      method: 'recipes.search.v3', // Use v3 for better filtering if available, otherwise v2 or v1
+      search_expression: searchExpression,
+      format: 'json',
+      max_results: 3, // Get a few results
+      // Add other parameters as needed, e.g., 'must_have_images': true, 'recipe_type': 'Main Dishes'
+    }
+  };
+
+  const authorization = oauth.authorize(request_data);
+
+  try {
+    const response = await axios({
+      url: request_data.url,
+      method: request_data.method,
+      headers: oauth.toHeader(authorization),
+      data: request_data.data, // For POST requests, parameters go in the body
+    });
+
+    const data = response.data;
+    console.log("FatSecret API Raw Response:", JSON.stringify(data, null, 2));
+
+    if (data.recipes && data.recipes.recipe && data.recipes.recipe.length > 0) {
+      const recipes = Array.isArray(data.recipes.recipe) ? data.recipes.recipe : [data.recipes.recipe];
+      const formattedRecipes = recipes.map(r => ({
+        id: r.recipe_id,
+        name: r.recipe_name,
+        description: r.recipe_description || 'No description available.',
+        imageUrl: r.recipe_image,
+        sourceUrl: r.recipe_url, // URL on FatSecret's site
+        // You might need to call recipe.get for full ingredients and instructions
+        // For now, we'll indicate if full details are needed from sourceUrl
+      }));
+
+      res.json({ success: true, recipes: formattedRecipes });
+    } else {
+      res.json({ success: true, recipes: [], message: "No recipes found for your ingredients." });
+    }
+
+  } catch (error) {
+    console.error("Error calling FatSecret API:", error.response ? error.response.data : error.message);
+    res.status(500).json({ success: false, error: "Failed to fetch recipes from FatSecret." });
+  }
+});
+
+// --- Export the Express app as a Cloud Function ---
+exports.fatsecretApiGateway = app;
+
+// How to run cloud functions
+// gcloud functions deploy fatsecretApiGateway \
+//   --runtime nodejs20 \
+//   --trigger-http \
+//   --allow-unauthenticated \
+//   --entry-point fatsecretApiGateway \
+//   --set-secrets=FATSECRET_CONSUMER_KEY=FATSECRET_CONSUMER_KEY:latest,FATSECRET_CONSUMER_SECRET=FATSECRET_CONSUMER_SECRET:latest \
+//   --region=us-central1 # Use your desired region
 // Define the API endpoint for scanning receipts  - Document AI
 // app.post('/api/scan-receipt', upload.single('receipt'), async (req, res) => {
 //   // 'receipt' is the field name we'll use in the frontend
