@@ -1,6 +1,7 @@
 // services/example.service.js
-const admin = require('firebase-admin');
-const db = admin.firestore();
+// const admin = require('firebase-admin');
+// const db = admin.firestore();
+const db = require('../config/firebase.js');
 
 // Service functions
 exports.getPantryList = async () => {
@@ -30,7 +31,7 @@ exports.createPantryItems = async (data) => {
       };
   
       const pantryRef = await db.collection('pantries').add(pantryItem);
-      const pantryDoc = await pantryRef.get();
+      const pantryDoc = await pantryRef.get();  
       return { id: pantryDoc.id, ...pantryDoc.data() };
     } catch (error) {
       throw new Error(`Error creating example: ${error.message}`);
