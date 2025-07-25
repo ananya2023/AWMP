@@ -3,44 +3,88 @@ import { Button, Box } from "@mui/material";
 import app from "../../firebase/firebase";
 import provider from "../../firebase/googleAuthProvider";
 import { useNavigate } from "react-router-dom";
-import { getAuth , signInWithPopup , GoogleAuthProvider , onAuthStateChanged } from "firebase/auth";
-
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 
 const GoogleButton = (email) => {
   const navigate = useNavigate();
-
   const auth = getAuth(app);
-    useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          navigate("/home");
-        }
-      });
-      return () => unsubscribe();
-    }, [auth, navigate]);
+
+  // This effect still handles navigation if the user is already authenticated
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // You might want to add a check here to ensure the user document
+        // is created in Firestore before navigating, or handle it in your home page component.
+        navigate("/home");
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, navigate]);
+
   const handleGoogleSignIn = () => {
     console.log("Google sign in clicked");
-        signInWithPopup(auth, provider)
-          .then((result) => {
-            // This gives you a Google Access Token. You can use it to access the Google API.
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
-            // The signed-in user info.
-            const user = result.user;
-            // IdP data available using getAdditionalUserInfo(result)
-            console.log(user)
-            // ...
-          }).catch((error) => {
-            console.log(error)
-            // Handle Errors here.
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            // The email of the user's account used.
-            const email = error.customData.email;
-            // The AuthCredential type that was used.
-            const credential = GoogleAuthProvider.credentialFromError(error);
-            // ...
+    signInWithPopup(auth, provider)
+      .then(async (result) => { // Added async here to use await
+        // This gives you a Google Access Token. You can use it to access the Google API.
+        const credential = GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken; // This is the Google Access Token, not the Firebase ID token
+
+        // The signed-in user info.
+        const user = result.user;
+        console.log(user , "userrrrrrrrrr")
+
+        // *** Get the Firebase ID token ***
+        const idToken = await user.getIdToken();
+        console.log("Firebase ID Token:", idToken);
+
+        // *** Call your backend API ***
+        try {
+          const backendResponse = await fetch(`http://localhost:5000/api/auth/postLogin`, { // Replace with your backend URL
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Include the Firebase ID token in the Authorization header
+              'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              // Include any other initial user data you need on the backend
+            }),
+            credentials: 'include',
+          
           });
+
+          const backendData = await backendResponse.json();
+
+          if (backendResponse.ok) {
+            console.log('Backend processed user login:', backendData);
+            // Now that the backend has processed the user, navigate
+            navigate("/home");
+          } else {
+            console.error('Backend error processing user login:', backendData.message);
+            // Handle backend errors (e.g., display an error message to the user)
+          }
+
+        } catch (backendError) {
+          console.error('Error calling backend API:', backendError);
+          // Handle errors during the backend API call
+        }
+
+      }).catch((error) => {
+        console.log(error)
+        // Handle Errors here.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        // The email of the user's account used.
+        const email = error.customData?.email; // Use optional chaining in case customData is null
+        // The AuthCredential type that was used.
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        // ...
+        // Display error message to the user
+      });
   };
 
   return (
