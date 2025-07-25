@@ -8,25 +8,30 @@ import {
   TextField,
   Stack,
   IconButton,
-  Typography
+  Typography,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Tooltip
 } from '@mui/material';
 import { Plus, Calendar } from 'lucide-react';
-
 
 const AddItemDialog = ({ isOpen, onClose }) => {
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
+  const [unit, setUnit] = useState('');
 
   const handleAdd = () => {
-    if (!itemName || !quantity || !expiryDate) {
+    if (!itemName || !quantity || !expiryDate || !unit) {
       alert('Please fill in all fields');
       return;
     }
 
     const newItem = {
       name: itemName,
-      quantity,
+      quantity: `${quantity} ${unit}`,
       expiryDate,
     };
 
@@ -36,6 +41,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
     setItemName('');
     setQuantity('');
     setExpiryDate('');
+    setUnit('');
     onClose();
   };
 
@@ -62,8 +68,26 @@ const AddItemDialog = ({ isOpen, onClose }) => {
             fullWidth
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            placeholder="e.g., 500g, 3 pieces, 1L"
+            placeholder="e.g., 500"
           />
+          <FormControl fullWidth>
+            <InputLabel>Unit *</InputLabel>
+            <Select
+              label="Unit *"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+            >
+              <Tooltip title="Grams" placement="right">
+                <MenuItem value="gms">gms</MenuItem>
+              </Tooltip>
+              <Tooltip title="Milliliters" placement="right">
+                <MenuItem value="mls">mls</MenuItem>
+              </Tooltip>
+              <Tooltip title="Pieces" placement="right">
+                <MenuItem value="pcs">pcs</MenuItem>
+              </Tooltip>
+            </Select>
+          </FormControl>
           <TextField
             label="Expiry Date *"
             type="date"
