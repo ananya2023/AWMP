@@ -1,6 +1,6 @@
 const Express=require('express')
 const BodyParser=require('body-parser')
-const logger=require('./logger')
+// const logger=require('./logger')
 
 class Service{
     constructor(name){
