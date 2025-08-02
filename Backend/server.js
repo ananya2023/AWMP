@@ -35,7 +35,7 @@ app.use(express.urlencoded({extended:true}));
 // Import your router and potentially pass the 'db' instance if needed
 // If your router then imports the service, the 'admin' instance will already be initialized.
 const pantryRouter = require('./src/router/router.js');
-app.use('/awmp', pantryRouter); // Your router will now correctly use the initialized admin instance
+app.use('/api/awmp', pantryRouter); // Your router will now correctly use the initialized admin instance
 
 app.get('/', (req, res) => {
   res.status(200).send('Meal Rescue API is up and running! Ready to scan receipts.');

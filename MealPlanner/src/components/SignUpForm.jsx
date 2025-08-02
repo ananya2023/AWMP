@@ -11,7 +11,8 @@ import {
 import { Mail, Lock } from "lucide-react";
 import GoogleButton from "./GoogleButton";
 import app from "../firebase/firebase";
-import { getAuth, createUserWithEmailAndPassword , signInWithPopup } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword  } from "firebase/auth";
+import { createUser } from "../api/userApi";
 
 
 
@@ -25,23 +26,49 @@ const SignUpForm = () => {
     console.log("hey")
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Sign up attempt:", { email, password });
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed up 
-      const user = userCredential.user;
-      console.log(user);
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode, errorMessage);
-      // ..
-    });
-  };
+   const handleSubmit = async (e) => {
+      e.preventDefault();
+      console.log("Sign up attempt:", { email, password });
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Firebase user created:", user);
+
+        const userData = {
+          user_id: user.uid,
+          email: user.email,
+          isEmailVerified: user.emailVerified
+        };
+        console.log(userData);
+
+        const response = await createUser(userData);
+        console.log("Backend Response:", response);
+
+        // Assuming backend returns user_id and pantry_id in response.data
+        if (response && response.data) {
+          const user_data = response.data;
+          const {user_id , pantry_id } = user_data?.user_data;
+
+          const localUserData = {
+            user_id,
+            pantry_id
+          };
+
+          // Save as single object under 'userData'
+          localStorage.setItem('user_data', JSON.stringify(localUserData));
+
+          console.log("Saved userData in localStorage:", localUserData);
+        } else {
+          console.error("Failed to retrieve pantry_id from backend response");
+        }
+
+      } catch (error) {
+        console.log(error.code, error.message);
+      }
+};
+
+
 
   return (
     <Box>

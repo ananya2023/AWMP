@@ -1,47 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Clock, AlertTriangle } from 'lucide-react';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Button,
-  Chip,
-  Box,
-  Stack,
-  Divider
+  Card, CardContent, CardHeader, Typography, Button,
+  Chip, Box, Stack, Divider
 } from '@mui/material';
 import AddItemDialog from './AddItemDialog';
+import { getPantryItems } from '../api/pantryApi'; // <-- Add this import
 
 const InventoryTracker = () => {
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState([]);
 
-  const inventoryItems = [
-    { id: 1, name: 'Bananas', quantity: '3 pieces', expiresIn: 2, category: 'fruit' },
-    { id: 2, name: 'Chicken Breast', quantity: '500g', expiresIn: 1, category: 'meat' },
-    { id: 3, name: 'Spinach', quantity: '1 bag', expiresIn: 3, category: 'vegetable' },
-    { id: 4, name: 'Milk', quantity: '1L', expiresIn: 4, category: 'dairy' },
-    { id: 5, name: 'Carrots', quantity: '1kg', expiresIn: 7, category: 'vegetable' },
-  ];
+  const fetchPantryItems = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (!userData?.user_id) {
+        console.error("No user_id found in localStorage.");
+        return;
+      }
+      const items = await getPantryItems(userData.user_id);
+      console.log(items , "items")
+      setInventoryItems(items);
+    } catch (error) {
+      console.error("Failed to fetch pantry items:", error);
+    }
+  };
 
-  const getUrgencyProps = (days) => {
-    if (days <= 1)
+  useEffect(() => {
+    fetchPantryItems();
+  }, []);
+
+  const handleAddItemClose = () => {
+    setIsAddItemOpen(false);
+    fetchPantryItems();  // Re-fetch after adding
+  };
+
+  const getUrgencyProps = (daysLeft) => {
+    if (daysLeft <= 1) {
       return {
         color: '#b91c1c',
         background: '#fee2e2',
         icon: <AlertTriangle size={14} style={{ marginRight: 4 }} />,
       };
-    if (days <= 3)
+    }
+    if (daysLeft <= 3) {
       return {
         color: '#92400e',
         background: '#fed7aa',
         icon: <Clock size={14} style={{ marginRight: 4 }} />,
       };
+    }
     return {
       color: '#166534',
       background: '#bbf7d0',
       icon: <Clock size={14} style={{ marginRight: 4 }} />,
     };
+  };
+
+  const calculateDaysLeft = (expiryDateStr) => {
+    if (!expiryDateStr) return '∞';
+    const expiry = new Date(expiryDateStr);
+    const today = new Date();
+    const diffTime = expiry - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
   };
 
   return (
@@ -66,7 +88,9 @@ const InventoryTracker = () => {
         <CardContent>
           <Stack spacing={2}>
             {inventoryItems.map((item) => {
-              const urgency = getUrgencyProps(item.expiresIn);
+              const daysLeft = calculateDaysLeft(item.expiry_date);
+              const urgency = getUrgencyProps(daysLeft);
+
               return (
                 <Box
                   key={item.id}
@@ -82,17 +106,17 @@ const InventoryTracker = () => {
                 >
                   <Box>
                     <Typography variant="subtitle1" fontWeight={500}>
-                      {item.name}
+                      {item.item_name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {item.quantity}
+                      {item.quantity} {item.unit}
                     </Typography>
                   </Box>
                   <Chip
                     label={
                       <Box display="flex" alignItems="center">
                         {urgency.icon}
-                        <span>{item.expiresIn}d left</span>
+                        <span>{daysLeft}d left</span>
                       </Box>
                     }
                     sx={{
@@ -112,7 +136,7 @@ const InventoryTracker = () => {
           <Box textAlign="center">
             <Typography variant="body2" color="text.secondary">
               <AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4, color: '#f97316' }} />
-              2 items expiring soon — check recipe suggestions
+              {inventoryItems.filter(i => calculateDaysLeft(i.expiry_date) <= 3).length} items expiring soon
             </Typography>
           </Box>
         </CardContent>
@@ -120,7 +144,7 @@ const InventoryTracker = () => {
 
       <AddItemDialog
         isOpen={isAddItemOpen}
-        onClose={() => setIsAddItemOpen(false)}
+        onClose={handleAddItemClose}  // <-- refresh after add
       />
     </>
   );

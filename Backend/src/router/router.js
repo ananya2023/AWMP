@@ -5,7 +5,7 @@ const pantryController = require('../controller/Controller');
 // USER ROUTES
 
 // POST /api/users - Create new user (Sign up)
-router.post('/users', pantryController.createUser);
+router.post('/create-user', pantryController.createUser);
 
 // GET /api/users/:user_id - Get user details by user_id
 router.get('/users/:user_id', pantryController.getUserById);

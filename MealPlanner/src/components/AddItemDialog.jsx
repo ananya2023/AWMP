@@ -13,36 +13,70 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Tooltip
+  Tooltip,
+  Chip,
+  OutlinedInput,
 } from '@mui/material';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, ImagePlus } from 'lucide-react';
+import { addPantryItem } from '../api/pantryApi';
+
+const CATEGORIES = [
+  'Proteins', 'Dairy', 'Vegetables', 'Grains',
+  'Canned Goods', 'Spices', 'Condiments', 'Gluten'
+];
+
+const UNITS = ['grams', 'ml', 'pieces'];
 
 const AddItemDialog = ({ isOpen, onClose }) => {
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
   const [unit, setUnit] = useState('');
+  const [expiryDate, setExpiryDate] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [notes, setNotes] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
 
-  const handleAdd = () => {
-    if (!itemName || !quantity || !expiryDate || !unit) {
-      alert('Please fill in all fields');
+  const handleAdd = async () => {
+    if (!itemName || !quantity || !unit || !expiryDate || categories.length === 0) {
+      alert('Please fill all required fields');
       return;
     }
 
-    const newItem = {
-      name: itemName,
-      quantity: `${quantity} ${unit}`,
-      expiryDate,
+    const userData = JSON.parse(localStorage.getItem('user_data'));
+    console.log(userData)
+
+    const itemData = {
+      user_id : userData?.user_id,
+      pantry_id : userData?.pantry_id,
+      item_name: itemName,
+      category: categories,
+      quantity: parseFloat(quantity),
+      unit,
+      expiry_date: expiryDate,
+      notes,
+      image_url: imageUrl,
     };
 
-    console.log('Adding new item to inventory:', newItem);
+    console.log(itemData , "item data")
 
-    // Reset and close
-    setItemName('');
-    setQuantity('');
-    setExpiryDate('');
-    setUnit('');
-    onClose();
+    try {
+      const response = await addPantryItem(itemData);
+      console.log(response)
+      console.log('Item added:', itemData);
+
+      // Reset form
+      setItemName('');
+      setQuantity('');
+      setUnit('');
+      setExpiryDate('');
+      setCategories([]);
+      setNotes('');
+      setImageUrl('');
+
+      onClose();
+    } catch (err) {
+      alert('Failed to add item. Please try again.');
+    }
   };
 
   return (
@@ -61,33 +95,51 @@ const AddItemDialog = ({ isOpen, onClose }) => {
             fullWidth
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
-            placeholder="e.g., Chicken Breast, Tomatoes"
           />
-          <TextField
-            label="Quantity *"
-            fullWidth
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            placeholder="e.g., 500"
-          />
+
+          <Stack direction="row" spacing={2}>
+            <TextField
+              label="Quantity *"
+              type="number"
+              fullWidth
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
+            <FormControl fullWidth>
+              <InputLabel>Unit *</InputLabel>
+              <Select
+                label="Unit *"
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+              >
+                {UNITS.map((u) => (
+                  <MenuItem key={u} value={u}>{u}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+
           <FormControl fullWidth>
-            <InputLabel>Unit *</InputLabel>
+            <InputLabel>Category *</InputLabel>
             <Select
-              label="Unit *"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
+              multiple
+              value={categories}
+              onChange={(e) => setCategories(e.target.value)}
+              input={<OutlinedInput label="Category" />}
+              renderValue={(selected) => (
+                <Stack direction="row" flexWrap="wrap" gap={1}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Stack>
+              )}
             >
-              <Tooltip title="Grams" placement="right">
-                <MenuItem value="gms">gms</MenuItem>
-              </Tooltip>
-              <Tooltip title="Milliliters" placement="right">
-                <MenuItem value="mls">mls</MenuItem>
-              </Tooltip>
-              <Tooltip title="Pieces" placement="right">
-                <MenuItem value="pcs">pcs</MenuItem>
-              </Tooltip>
+              {CATEGORIES.map((cat) => (
+                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+              ))}
             </Select>
           </FormControl>
+
           <TextField
             label="Expiry Date *"
             type="date"
@@ -103,13 +155,34 @@ const AddItemDialog = ({ isOpen, onClose }) => {
               ),
             }}
           />
+
+          <TextField
+            label="Notes"
+            fullWidth
+            multiline
+            rows={2}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+
+          <TextField
+            label="Image URL"
+            fullWidth
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <IconButton disabled edge="start" sx={{ mr: 1 }}>
+                  <ImagePlus size={16} />
+                </IconButton>
+              ),
+            }}
+          />
         </Stack>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} variant="outlined">
-          Cancel
-        </Button>
+        <Button onClick={onClose} variant="outlined">Cancel</Button>
         <Button
           onClick={handleAdd}
           variant="contained"

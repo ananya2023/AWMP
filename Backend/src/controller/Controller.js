@@ -4,10 +4,10 @@ const pantryService = require('../service/Service');
 exports.createUser = async (req, res) => {
   try {
   
-    const { name, email, password, age, user_id } = req.body;
-    if (!name || !email || !password || !age || !user_id) {
+    const { user_id, email, isEmailVerified } = req.body;
+    if (!email  || !user_id) {
       return res.status(400).json({ 
-        message: 'Missing required fields: name, email, password, age, user_id' 
+        message: 'Missing required fields: email, age, user_id' 
       });
     }
 
@@ -49,14 +49,24 @@ exports.createPantryItem = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("createPantryItem controller started");
    
-    const { user_id, item_name, category, quantity, unit, expiry_date } = req.body;
-    if (!user_id || !item_name || !category || !quantity || !unit || !expiry_date) {
+    const { user_id, pantry_id, item_name, category, quantity, unit, expiry_date , notes } = req.body;
+    if (!user_id || !pantry_id ||  !item_name || !category || !quantity || !unit || !expiry_date) {
       return res.status(400).json({ 
-        message: 'Missing required fields: user_id, item_name, category, quantity, unit, expiry_date' 
+        message: 'Missing required fields:  item_name, category, quantity, unit, expiry_date , notes' 
       });
     }
 
-    const newPantryItem = await pantryService.createPantryItem(req.body);
+    const data = {
+      user_id,
+      item_name,
+      category,
+      quantity,
+      unit,
+      expiry_date,
+      notes
+    };
+
+    const newPantryItem = await pantryService.createPantryItem(data);
     res.status(201).json({
       message: 'Pantry item created successfully',
       data: newPantryItem
