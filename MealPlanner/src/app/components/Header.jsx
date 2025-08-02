@@ -30,6 +30,7 @@ const Header = () => {
     phone: '9876543210',
     avatar: 'https://i.pravatar.cc/300', // Default avatar URL
   });
+  
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
