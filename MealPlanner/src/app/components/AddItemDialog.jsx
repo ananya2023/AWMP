@@ -18,7 +18,7 @@ import {
   OutlinedInput,
 } from '@mui/material';
 import { Plus, Calendar, ImagePlus } from 'lucide-react';
-import { addPantryItem } from '../api/pantryApi';
+import { addPantryItem } from '../../api/pantryApi';
 
 const CATEGORIES = [
   'Proteins', 'Dairy', 'Vegetables', 'Grains',

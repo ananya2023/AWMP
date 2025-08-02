@@ -10,9 +10,9 @@ import {
 } from "@mui/material";
 import { Mail, Lock } from "lucide-react";
 import GoogleButton from "./GoogleButton";
-import app from "../firebase/firebase";
+import app from "../../firebase/firebase";
 import { getAuth, createUserWithEmailAndPassword  } from "firebase/auth";
-import { createUser } from "../api/userApi";
+import { createUser } from "../../api/userApi";
 
 
 

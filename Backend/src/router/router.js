@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const pantryController = require('../controller/Controller');
 
+const notificationController = require('../controller/notificationController');
+
 // USER ROUTES
 
 // POST /api/users - Create new user (Sign up)
@@ -17,5 +19,8 @@ router.post('/pantry-items', pantryController.createPantryItem);
 
 // GET /api/pantry-items?user_id=123 - Get all pantry items for a user
 router.get('/pantry-items', pantryController.getPantryItemsByUserId);
+
+router.post('/send-expiry-notification', notificationController.sendExpiryNotification);
+
 
 module.exports = router;

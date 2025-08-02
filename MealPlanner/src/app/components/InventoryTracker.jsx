@@ -5,7 +5,7 @@ import {
   Chip, Box, Stack, Divider
 } from '@mui/material';
 import AddItemDialog from './AddItemDialog';
-import { getPantryItems } from '../api/pantryApi'; // <-- Add this import
+import { getPantryItems } from '../../api/pantryApi'; // <-- Add this import
 
 const InventoryTracker = () => {
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);

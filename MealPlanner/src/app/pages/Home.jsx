@@ -31,7 +31,7 @@ const Index = () => {
             <Grid container spacing={4}>
               <Grid item xs={12} lg={8}>
                 <Box display="flex" flexDirection="column" gap={4}>
-                   <YourImpact />
+                   {/* <YourImpact /> */}
                   {/* <RecipeSuggestions /> */}
                 </Box>
               </Grid>
