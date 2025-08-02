@@ -7,40 +7,73 @@ import {
   TextField,
   Typography,
   InputAdornment,
-  Paper,
 } from "@mui/material";
 import { Mail, Lock } from "lucide-react";
 import GoogleButton from "./GoogleButton";
-import app from "../firebase/firebase";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import app from "../../firebase/firebase";
+import { getAuth, createUserWithEmailAndPassword  } from "firebase/auth";
+import { createUser } from "../../api/userApi";
 
-const LoginForm = () => {
+
+
+
+const SignUpForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const auth = getAuth(app);
 
+  const SignUpWithGoogle = () => {  
+    console.log("hey")
+  }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const auth = getAuth();
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in 
+   const handleSubmit = async (e) => {
+      e.preventDefault();
+      console.log("Sign up attempt:", { email, password });
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        console.log(user);
-        // ...
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-      });
-  };
+        console.log("Firebase user created:", user);
+
+        const userData = {
+          user_id: user.uid,
+          email: user.email,
+          isEmailVerified: user.emailVerified
+        };
+        console.log(userData);
+
+        const response = await createUser(userData);
+        console.log("Backend Response:", response);
+
+        // Assuming backend returns user_id and pantry_id in response.data
+        if (response && response.data) {
+          const user_data = response.data;
+          const {user_id , pantry_id } = user_data?.user_data;
+
+          const localUserData = {
+            user_id,
+            pantry_id
+          };
+
+          // Save as single object under 'userData'
+          localStorage.setItem('user_data', JSON.stringify(localUserData));
+
+          console.log("Saved userData in localStorage:", localUserData);
+        } else {
+          console.error("Failed to retrieve pantry_id from backend response");
+        }
+
+      } catch (error) {
+        console.log(error.code, error.message);
+      }
+};
+
+
 
   return (
     <Box>
       <Typography variant="h5" align="center" fontWeight="600" gutterBottom>
-        Login
+        Sign Up
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -95,7 +128,7 @@ const LoginForm = () => {
               },
             }}
           >
-            Sign In
+            Create Account
           </Button>
         </Stack>
       </Box>
@@ -107,10 +140,10 @@ const LoginForm = () => {
 
       {/* Google Button */}
       <Box mt={3}>
-        <GoogleButton />
+        <GoogleButton email={email} />
       </Box>
     </Box>
   );
 };
 
-export default LoginForm;
+export default SignUpForm;

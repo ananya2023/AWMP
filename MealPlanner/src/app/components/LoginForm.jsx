@@ -7,46 +7,40 @@ import {
   TextField,
   Typography,
   InputAdornment,
+  Paper,
 } from "@mui/material";
 import { Mail, Lock } from "lucide-react";
 import GoogleButton from "./GoogleButton";
-import app from "../firebase/firebase";
-import { getAuth, createUserWithEmailAndPassword , signInWithPopup } from "firebase/auth";
+import app from "../../firebase/firebase";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
-
-
-
-const SignUpForm = () => {
+const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const auth = getAuth(app);
 
-  const SignUpWithGoogle = () => {  
-    console.log("hey")
-  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Sign up attempt:", { email, password });
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed up 
-      const user = userCredential.user;
-      console.log(user);
-      // ...
-    })
-    .catch((error) => {
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      console.log(errorCode, errorMessage);
-      // ..
-    });
+    const auth = getAuth();
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in 
+        const user = userCredential.user;
+        console.log(user);
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
+      });
   };
 
   return (
     <Box>
       <Typography variant="h5" align="center" fontWeight="600" gutterBottom>
-        Sign Up
+        Login
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -101,7 +95,7 @@ const SignUpForm = () => {
               },
             }}
           >
-            Create Account
+            Sign In
           </Button>
         </Stack>
       </Box>
@@ -113,10 +107,10 @@ const SignUpForm = () => {
 
       {/* Google Button */}
       <Box mt={3}>
-        <GoogleButton email={email} />
+        <GoogleButton />
       </Box>
     </Box>
   );
 };
 
-export default SignUpForm;
+export default LoginForm;

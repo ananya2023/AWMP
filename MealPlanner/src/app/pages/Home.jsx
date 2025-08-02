@@ -25,7 +25,19 @@ const Index = () => {
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <Header />
-        <YourImpact />
+       
+        <Box sx={{ py: 8, bgcolor: 'white' }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={4}>
+              <Grid item xs={12} lg={8}>
+                <Box display="flex" flexDirection="column" gap={4}>
+                   {/* <YourImpact /> */}
+                  {/* <RecipeSuggestions /> */}
+                </Box>
+              </Grid>
+            </Grid>
+          </Container>
+        </Box>
         {/* <ReceiptScanner />
         <AIRecipeGenerator /> */}
 

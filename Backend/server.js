@@ -2,47 +2,56 @@
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+require('dotenv').config();
 // const credentials = require('./key.json');
 
-
-// admin.initializeApp({
-//   credential: admin.credential.cert(credentials)
-// })
-
-// const db  = admin.firestore();
-
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+    console.error('Error: GEMINI_API_KEY environment variable not set.');
+    console.error('Please set it before running the server: export GEMINI_API_KEY="YOUR_API_KEY_HERE"');
+    process.exit(1);
+}
 
 const app = express();
-const port = 3001; // Port for our backend server
+const port = 3001; // Backend server port
+
+// ------------------------
+// 🟢 CORS CONFIGURATION
+// ------------------------
 const corsOptions = {
-  origin: '*',
+  origin: 'http://localhost:5173',  // ✅ Only allow your frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true                // ✅ Important to allow cookies/auth
 };
 
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
 app.use(cors(corsOptions));
+
+// Handle Preflight Requests
+app.options('*', cors(corsOptions));
+
+// ------------------------
+// 🔧 MIDDLEWARES
+// ------------------------
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 
-// Import your router and potentially pass the 'db' instance if needed
-// If your router then imports the service, the 'admin' instance will already be initialized.
-const pantryRouter = require('./src/router/router.js');
-app.use('/awmp', pantryRouter); // Your router will now correctly use the initialized admin instance
+// ------------------------
+// 📦 ROUTES
+// ------------------------
+const router = require('./src/router/router.js');
+app.use('/api/awmp', router);
 
+// ------------------------
+// 🔥 ROOT ENDPOINT
+// ------------------------
 app.get('/', (req, res) => {
   res.status(200).send('Meal Rescue API is up and running! Ready to scan receipts.');
 });
 
+// ------------------------
+// 🚀 START SERVER
+// ------------------------
 app.listen(port, () => {
   console.log(`Meal Rescue backend listening on http://localhost:${port}`);
 });
-
-// module.exports = db

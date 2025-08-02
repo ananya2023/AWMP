@@ -5,7 +5,7 @@ const VALID_CATEGORIES = [
   'Canned Goods', 'Spices', 'Condiments', 'Gluten'
 ];
 
-const VALID_UNITS = ['grams', 'ml', 'pieces', 'kg', 'liters', 'cups', 'tablespoons', 'teaspoons'];
+const VALID_UNITS = ['grams', 'ml', 'pieces','Dozen'];
 
 const getNextPantryId = async () => {
   try {
@@ -35,8 +35,8 @@ exports.createUser = async (data) => {
     console.log("Creating user:", data);
     
     // Validate required fields
-    const { name, email, password, age, user_id } = data;
-    if (!name || !email || !password || !age || !user_id) {
+    const {  email, isEmailVerified, user_id } = data;
+    if ( !email || !user_id) {
       throw new Error('Missing required fields: name, email, password, age, user_id');
     }
 
@@ -65,16 +65,12 @@ exports.createUser = async (data) => {
 
     // Create user data
     const userData = {
-      name: data.name,
+      name: data?.name ?  data?.name : "",
       email: data.email,
-      password: data.password, // Note: In production, hash this password
-      age: parseInt(data.age),
-      profile_photo: data.profile_photo || null,
-      dietary_preferences: data.dietary_preferences || null,
-      allergies_restrictions: data.allergies_restrictions || null,
       created_at: new Date(),
       pantry_id: pantryId,
-      user_id: parseInt(user_id)
+      user_id: user_id,
+      is_email_verified : isEmailVerified
     };
 
     const userRef = await db.collection('users').add(userData);
@@ -120,26 +116,101 @@ exports.getUserById = async (user_id) => {
 };
 
 
+const fs = require('fs/promises');
+const { fileToGenerativePart, model } = require('../utils/geminiHelper'); // Adjust path accordingly
+
+exports.processReceiptImage = async (imagePath, mimeType) => {
+  try {
+    console.log(`Processing image with Gemini 1.5 Pro: ${imagePath}`);
+    const imagePart = await fileToGenerativePart(imagePath, mimeType);
+
+   const prompt = `
+        You are a highly accurate receipt data extractor.
+        Extract the following information from the receipt image.
+
+        For each item, infer:
+        - name
+        - quantity
+        - unit (like 'pieces', 'grams', 'ml')
+        - categories (can be multiple from: Proteins, Dairy, Vegetables, Grains, Canned Goods, Spices, Condiments, Gluten)
+
+        Format response as:
+        \`\`\`json
+        {
+          "vendor_name": "string or null",
+          "date": "YYYY-MM-DD or null",
+          "items": [
+            {
+              "name": "string",
+              "quantity": "number",
+              "unit": "string",
+              "categories": ["string", "string", ...],
+              "price": "string"
+            }
+          ],
+          "subtotal": "string or null",
+          "tax": "string or null",
+          "total": "string or null"
+        }
+        \`\`\`
+
+        If any field is not found, use null. Categories should be an array, even if it's empty.
+        `;
+
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('Gemini Response Text:\n', text);
+
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+    let extractedData = {};
+    if (jsonMatch && jsonMatch[1]) {
+      extractedData = JSON.parse(jsonMatch[1]);
+    } else {
+      throw new Error('No JSON Markdown block found in Gemini response.');
+    }
+
+    return { ocrText: text, extractedData };
+
+  } catch (error) {
+    console.error('Error in processReceiptImage:', error.message);
+    throw error;
+  } finally {
+    // Always clean up file
+    await fs.unlink(imagePath);
+  }
+};
+
+
 exports.createPantryItem = async (data) => {
   try {
     console.log("Creating pantry item:", data);
 
-    const { user_id, item_name, category, quantity, unit } = data;
+    const { user_id, item_name, category, quantity, unit, expiry_date, notes, image_url } = data;
     if (!user_id || !item_name || !category || !quantity || !unit) {
       throw new Error('Missing required fields: user_id, item_name, category, quantity, unit');
     }
 
-    if (!VALID_CATEGORIES.includes(data.category)) {
-      throw new Error(`Invalid category. Must be one of: ${VALID_CATEGORIES.join(', ')}`);
+    // Validate categories array
+    const categories = Array.isArray(category) ? category : [category];
+    const invalidCategories = categories.filter(cat => !VALID_CATEGORIES.includes(cat));
+
+    if (invalidCategories.length > 0) {
+      throw new Error(`Invalid categories found: ${invalidCategories.join(', ')}. Valid categories are: ${VALID_CATEGORIES.join(', ')}`);
     }
 
-    if (!VALID_UNITS.includes(data.unit)) {
+    // Validate unit
+    if (!VALID_UNITS.includes(unit)) {
       throw new Error(`Invalid unit. Must be one of: ${VALID_UNITS.join(', ')}`);
     }
 
-    // Get user's pantry_id
+    console.log("userSnapshot")
+
+    // Fetch User to get pantry_id
     const userSnapshot = await db.collection('users')
-      .where('user_id', '==', parseInt(user_id))
+      .where('user_id', '==', user_id)  // Removed parseInt
       .limit(1)
       .get();
 
@@ -157,13 +228,13 @@ exports.createPantryItem = async (data) => {
     const itemData = {
       id: itemRef.id,
       pantry_item_id: pantryId,
-      item_name: data.item_name,
-      category: data.category,
-      quantity: parseFloat(data.quantity),
-      unit: data.unit,
-      expiry_date: data.expiry_date || null,
-      notes: data.notes || null,
-      image_url: data.image_url || "https://t4.ftcdn.net/jpg/09/43/48/93/360_F_943489384_zq3u5kkefFjPY3liE6t81KrX8W3lvxSz.jpg",
+      item_name: item_name,
+      category: categories,  // Store as array
+      quantity: parseFloat(quantity),
+      unit: unit,
+      expiry_date: expiry_date || null,
+      notes: notes || null,
+      image_url: image_url || "https://t4.ftcdn.net/jpg/09/43/48/93/360_F_943489384_zq3u5kkefFjPY3liE6t81KrX8W3lvxSz.jpg",
       date_added: now,
       last_modified: now
     };
@@ -188,16 +259,16 @@ exports.createPantryItem = async (data) => {
   }
 };
 
-exports.getPantryItemsByUserId = async (user_id) => {
+exports.getPantryItemsByUserId = async (user_id, daysUntilExpiry = null) => {
   try {
     console.log("Getting pantry items for user:", user_id);
-    
+
     // Get user's pantry_id
     const userSnapshot = await db.collection('users')
-      .where('user_id', '==', parseInt(user_id))
+      .where('user_id', '==', user_id)
       .limit(1)
       .get();
-    
+
     if (userSnapshot.empty) {
       console.log("User not found:", user_id);
       return [];
@@ -206,40 +277,57 @@ exports.getPantryItemsByUserId = async (user_id) => {
     const userData = userSnapshot.docs[0].data();
     const pantryId = userData.pantry_id;
 
+    console.log("User's pantry_id:", pantryId);
+
     // Get all items for this user's pantry
     const itemsSnapshot = await db.collection('items')
       .where('pantry_item_id', '==', pantryId)
       .get();
-    
+
     if (itemsSnapshot.empty) {
-      console.log("No items found for user:", user_id);
+      console.log("No items found for pantry_id:", pantryId);
       return [];
     }
 
-    const pantryItems = itemsSnapshot.docs.map(doc => {
+    const today = new Date();
+
+    let pantryItems = itemsSnapshot.docs.map(doc => {
       const data = doc.data();
       return {
-        item_id: doc.id,
-        user_id: parseInt(user_id),
-        pantry_id: pantryId,
-        item_data: {
-          id: doc.id,
-          pantry_item_id: data.pantry_item_id,
-          item_name: data.item_name,
-          category: data.category,
-          quantity: data.quantity,
-          unit: data.unit,
-          expiry_date: data.expiry_date,
-          notes: data.notes || null,
-          image_url: data.image_url || null,
-          date_added: data.date_added?.toDate() || null,
-          last_modified: data.last_modified?.toDate() || null
-        }
+        id: doc.id,
+        pantry_item_id: data.pantry_item_id,
+        item_name: data.item_name,
+        category: data.category,
+        quantity: data.quantity,
+        unit: data.unit,
+        expiry_date: data.expiry_date ? new Date(data.expiry_date) : null,
+        notes: data.notes || null,
+        image_url: data.image_url || null,
+        date_added: data.date_added ? new Date(data.date_added) : null,
+        last_modified: data.last_modified ? new Date(data.last_modified) : null
       };
+    });
+
+    // Filter if 'daysUntilExpiry' is provided
+    if (daysUntilExpiry !== null) {
+      pantryItems = pantryItems.filter(item => {
+        if (!item.expiry_date) return false;
+        const diffTime = item.expiry_date.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= daysUntilExpiry;
+      });
+    }
+
+    // Sort by expiry_date (ascending)
+    pantryItems.sort((a, b) => {
+      if (!a.expiry_date) return 1;
+      if (!b.expiry_date) return -1;
+      return a.expiry_date - b.expiry_date;
     });
 
     console.log(`Found ${pantryItems.length} items for user ${user_id}`);
     return pantryItems;
+
   } catch (error) {
     console.error("Error getting pantry items:", error);
     throw new Error(`Error getting pantry items: ${error.message}`);

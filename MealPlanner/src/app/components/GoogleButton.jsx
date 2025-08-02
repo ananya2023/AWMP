@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Button, Box } from "@mui/material";
-import app from "../firebase/firebase";
-import provider from "../firebase/googleAuthProvider";
+import app from "../../firebase/firebase";
+import provider from "../../firebase/googleAuthProvider";
 import { useNavigate } from "react-router-dom";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 
