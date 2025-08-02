@@ -2,14 +2,16 @@
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+require('dotenv').config();
 // const credentials = require('./key.json');
 
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(credentials)
-// })
-
-// const db  = admin.firestore();
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+    console.error('Error: GEMINI_API_KEY environment variable not set.');
+    console.error('Please set it before running the server: export GEMINI_API_KEY="YOUR_API_KEY_HERE"');
+    process.exit(1); // Exit if API key is missing
+}
 
 
 const app = express();

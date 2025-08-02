@@ -18,14 +18,14 @@ import {
   OutlinedInput,
 } from '@mui/material';
 import { Plus, Calendar, ImagePlus } from 'lucide-react';
-import { addPantryItem } from '../../api/pantryApi';
+import { addPantryItems } from '../../api/pantryApi';
 
 const CATEGORIES = [
   'Proteins', 'Dairy', 'Vegetables', 'Grains',
   'Canned Goods', 'Spices', 'Condiments', 'Gluten'
 ];
 
-const UNITS = ['grams', 'ml', 'pieces'];
+const UNITS = ['grams', 'ml', 'pieces','Dozen'];
 
 const AddItemDialog = ({ isOpen, onClose }) => {
   const [itemName, setItemName] = useState('');
@@ -60,7 +60,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
     console.log(itemData , "item data")
 
     try {
-      const response = await addPantryItem(itemData);
+      const response = await addPantryItems(itemData);
       console.log(response)
       console.log('Item added:', itemData);
 

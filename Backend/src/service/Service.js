@@ -5,7 +5,7 @@ const VALID_CATEGORIES = [
   'Canned Goods', 'Spices', 'Condiments', 'Gluten'
 ];
 
-const VALID_UNITS = ['grams', 'ml', 'pieces', 'kg', 'liters', 'cups', 'tablespoons', 'teaspoons'];
+const VALID_UNITS = ['grams', 'ml', 'pieces','Dozen'];
 
 const getNextPantryId = async () => {
   try {
@@ -112,6 +112,74 @@ exports.getUserById = async (user_id) => {
   } catch (error) {
     console.error("Error getting user by ID:", error);
     throw new Error(`Error getting user by ID: ${error.message}`);
+  }
+};
+
+
+const fs = require('fs/promises');
+const { fileToGenerativePart, model } = require('../utils/geminiHelper'); // Adjust path accordingly
+
+exports.processReceiptImage = async (imagePath, mimeType) => {
+  try {
+    console.log(`Processing image with Gemini 1.5 Pro: ${imagePath}`);
+    const imagePart = await fileToGenerativePart(imagePath, mimeType);
+
+   const prompt = `
+        You are a highly accurate receipt data extractor.
+        Extract the following information from the receipt image.
+
+        For each item, infer:
+        - name
+        - quantity
+        - unit (like 'pieces', 'grams', 'ml')
+        - categories (can be multiple from: Proteins, Dairy, Vegetables, Grains, Canned Goods, Spices, Condiments, Gluten)
+
+        Format response as:
+        \`\`\`json
+        {
+          "vendor_name": "string or null",
+          "date": "YYYY-MM-DD or null",
+          "items": [
+            {
+              "name": "string",
+              "quantity": "number",
+              "unit": "string",
+              "categories": ["string", "string", ...],
+              "price": "string"
+            }
+          ],
+          "subtotal": "string or null",
+          "tax": "string or null",
+          "total": "string or null"
+        }
+        \`\`\`
+
+        If any field is not found, use null. Categories should be an array, even if it's empty.
+        `;
+
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const response = await result.response;
+    const text = response.text();
+
+    console.log('Gemini Response Text:\n', text);
+
+    const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+    let extractedData = {};
+    if (jsonMatch && jsonMatch[1]) {
+      extractedData = JSON.parse(jsonMatch[1]);
+    } else {
+      throw new Error('No JSON Markdown block found in Gemini response.');
+    }
+
+    return { ocrText: text, extractedData };
+
+  } catch (error) {
+    console.error('Error in processReceiptImage:', error.message);
+    throw error;
+  } finally {
+    // Always clean up file
+    await fs.unlink(imagePath);
   }
 };
 
