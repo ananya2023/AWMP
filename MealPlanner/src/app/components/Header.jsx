@@ -11,17 +11,33 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
+  Avatar,
+  Stack,
 } from '@mui/material';
 import { ChefHat, Menu, Bell, User, BookOpen, Calendar } from 'lucide-react';
 import SavedRecipes from './SavedRecipes';
 import MealPlansView from './MealPlansView';
+import Profile from './MyProfile';  
 
 const Header = () => {
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
   const [showMealPlan, setShowMealPlan] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+
+  const [userData, setUserData] = useState({
+    name: 'Ananya Miriyala',
+    email: 'ananya@example.com',
+    phone: '9876543210',
+    avatar: 'https://i.pravatar.cc/300', // Default avatar URL
+  });
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  const handleProfileSave = (updatedData) => {
+    setUserData(updatedData);
+    setShowProfile(false);
+  };
 
   return (
     <>
@@ -30,12 +46,12 @@ const Header = () => {
           <Box display="flex" alignItems="center" gap={1}>
             <ChefHat size={32} color={theme.palette.success.main} />
             <Typography variant="h6" fontWeight="bold">
-              FreshPlanner
+              Cooksy
             </Typography>
           </Box>
 
           {!isMobile ? (
-            <Box display="flex" alignItems="center" gap={2}>
+            <Stack direction="row" alignItems="center" spacing={2}>
               <Button
                 variant="contained"
                 onClick={() => setShowMealPlan(true)}
@@ -53,10 +69,10 @@ const Header = () => {
               <Button variant="text" startIcon={<Bell size={18} />}>
                 Notifications
               </Button>
-              <Button variant="text" startIcon={<User size={18} />}>
-                Profile
-              </Button>
-            </Box>
+              <IconButton onClick={() => setShowProfile(true)}>
+                <Avatar alt={userData.name} src={userData.avatar} />
+              </IconButton>
+            </Stack>
           ) : (
             <IconButton color="inherit">
               <Menu />
@@ -78,6 +94,13 @@ const Header = () => {
           <MealPlansView />
         </DialogContent>
       </Dialog>
+
+      <Profile
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        userData={userData}
+        onSave={handleProfileSave}
+      />
     </>
   );
 };

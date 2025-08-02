@@ -3,6 +3,7 @@ const router = express.Router();
 const pantryController = require('../controller/Controller');
 
 const notificationController = require('../controller/notificationController');
+const profileController = require('../controller/profileController');
 const multer = require('multer');
 const path = require('path');
 
@@ -22,6 +23,9 @@ const upload = multer({ storage: storage });
 
 
 // USER ROUTES
+
+// Update Profile Route
+router.put('/update-profile', profileController.updateProfile);
 
 // POST /api/users - Create new user (Sign up)
 router.post('/create-user', pantryController.createUser);

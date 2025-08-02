@@ -13,3 +13,19 @@ export const createUser = async (itemData) => {
     throw error;
   }
 };
+
+
+export const updateUserProfile = async (profileData) => {
+  try {
+    console.log(profileData, "pe");
+    const response = await axios.put(
+      `${BASE_URL}/update-profile`,
+      profileData,
+      { withCredentials: true }  
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to update profile');
+  }
+};
+
