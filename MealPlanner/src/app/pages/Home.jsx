@@ -20,7 +20,7 @@ const theme = createTheme({
   },
 });
 
-const Index = () => {
+const Home = () => {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -120,7 +120,7 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Home;
 
 
 

@@ -46,13 +46,11 @@ const AddItemDialog = ({ isOpen, onClose }) => {
     console.log(userData)
 
     const itemData = {
-      user_id : userData?.user_id,
-      pantry_id : userData?.pantry_id,
-      item_name: itemName,
-      category: categories,
+      name: itemName,
+      categories: categories,
       quantity: parseFloat(quantity),
       unit,
-      expiry_date: expiryDate,
+      expiryDate: expiryDate,
       notes,
       image_url: imageUrl,
     };
@@ -60,7 +58,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
     console.log(itemData , "item data")
 
     try {
-      const response = await addPantryItems(itemData);
+      const response = await addPantryItems([itemData]);
       console.log(response)
       console.log('Item added:', itemData);
 
