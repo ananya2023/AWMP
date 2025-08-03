@@ -17,6 +17,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { Upload, Camera, CheckCircle, Edit3, Calendar, Trash2, StickyNote } from 'lucide-react';
+import Lottie from 'lottie-react';
 import { addPantryItems, getScannedItems } from '../../api/pantryApi';
 
 const VALID_CATEGORIES = [
@@ -242,7 +243,46 @@ const ReceiptScanner = () => {
       <CardContent>
         {isScanning ? (
           <Box textAlign="center" py={5}>
-            <CircularProgress color="success" />
+            <Lottie 
+              animationData={{
+                "v": "5.7.4",
+                "fr": 30,
+                "ip": 0,
+                "op": 90,
+                "w": 100,
+                "h": 100,
+                "nm": "scanning",
+                "ddd": 0,
+                "assets": [],
+                "layers": [{
+                  "ddd": 0,
+                  "ind": 1,
+                  "ty": 4,
+                  "nm": "scanner",
+                  "sr": 1,
+                  "ks": {
+                    "o": {"a": 1, "k": [{"i": {"x": [0.833], "y": [0.833]}, "o": {"x": [0.167], "y": [0.167]}, "t": 0, "s": [0]}, {"t": 15, "s": [100]}, {"t": 75, "s": [100]}, {"t": 90, "s": [0]}]},
+                    "r": {"a": 0, "k": 0},
+                    "p": {"a": 1, "k": [{"i": {"x": 0.833, "y": 0.833}, "o": {"x": 0.167, "y": 0.167}, "t": 0, "s": [50, 80, 0]}, {"t": 45, "s": [50, 20, 0]}, {"t": 90, "s": [50, 80, 0]}]},
+                    "a": {"a": 0, "k": [0, 0, 0]},
+                    "s": {"a": 0, "k": [100, 100, 100]}
+                  },
+                  "ao": 0,
+                  "shapes": [{
+                    "ty": "rc",
+                    "p": {"a": 0, "k": [0, 0]},
+                    "s": {"a": 0, "k": [60, 4]},
+                    "r": {"a": 0, "k": 2},
+                    "fill": {"c": {"a": 0, "k": [0.2, 0.8, 0.2, 1]}}
+                  }],
+                  "ip": 0,
+                  "op": 90,
+                  "st": 0
+                }]
+              }}
+              style={{ width: 80, height: 80, margin: '0 auto 16px' }}
+              loop
+            />
             <Typography variant="body1" mt={2}>Scanning receipt and extracting items...</Typography>
             <Typography variant="caption" color="textSecondary">This may take a few seconds (powered by AI)</Typography>
           </Box>

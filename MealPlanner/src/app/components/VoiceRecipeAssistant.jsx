@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import YouTube from "react-youtube";
+import Lottie from 'lottie-react';
 
 // Initialize Gemini with your API key (ensure .env setup)
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_APP_GEMINI_API_KEY);
@@ -292,6 +293,47 @@ const VoiceRecipeAssistant = () => {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "auto", fontFamily: "Arial, sans-serif" }}>
+      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+        <Lottie 
+          animationData={{
+            "v": "5.7.4",
+            "fr": 30,
+            "ip": 0,
+            "op": 120,
+            "w": 150,
+            "h": 150,
+            "nm": "cooking-pot",
+            "ddd": 0,
+            "assets": [],
+            "layers": [{
+              "ddd": 0,
+              "ind": 1,
+              "ty": 4,
+              "nm": "pot",
+              "sr": 1,
+              "ks": {
+                "o": {"a": 0, "k": 100},
+                "r": {"a": 1, "k": [{"i": {"x": [0.833], "y": [0.833]}, "o": {"x": [0.167], "y": [0.167]}, "t": 0, "s": [0]}, {"t": 60, "s": [10]}, {"t": 120, "s": [0]}]},
+                "p": {"a": 0, "k": [75, 75, 0]},
+                "a": {"a": 0, "k": [0, 0, 0]},
+                "s": {"a": 1, "k": [{"i": {"x": [0.833, 0.833, 0.833], "y": [0.833, 0.833, 0.833]}, "o": {"x": [0.167, 0.167, 0.167], "y": [0.167, 0.167, 0.167]}, "t": 0, "s": [100, 100, 100]}, {"t": 30, "s": [110, 110, 100]}, {"t": 60, "s": [100, 100, 100]}]}
+              },
+              "ao": 0,
+              "shapes": [{
+                "ty": "el",
+                "p": {"a": 0, "k": [0, 0]},
+                "s": {"a": 0, "k": [50, 50]},
+                "fill": {"c": {"a": 0, "k": [0.8, 0.4, 0.2, 1]}}
+              }],
+              "ip": 0,
+              "op": 120,
+              "st": 0
+            }]
+          }}
+          style={{ width: 80, height: 80, margin: '0 auto' }}
+          loop
+        />
+      </div>
       <h2 style={{ textAlign: "center", color: "#333" }}>🎙️ Cooksy: Your Culinary Companion </h2>
 
       {/* Assistant Message Display */}
