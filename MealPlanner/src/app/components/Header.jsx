@@ -102,6 +102,7 @@ const Header = () => {
           '& .MuiDrawer-paper': {
             width: 280,
             boxSizing: 'border-box',
+            transition: 'transform 0.3s ease-in-out',
           },
         }}
       >
@@ -120,7 +121,14 @@ const Header = () => {
               button 
               key={index} 
               onClick={() => handleMenuItemClick(item.action)}
-              sx={{ '&:hover': { bgcolor: 'action.hover' } }}
+              sx={{ 
+                '&:hover': { 
+                  bgcolor: 'action.hover',
+                  transform: 'translateX(8px)',
+                  transition: 'all 0.2s ease'
+                },
+                transition: 'all 0.2s ease'
+              }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -129,28 +137,60 @@ const Header = () => {
         </List>
       </Drawer>
 
-      <Dialog open={showSavedRecipes} onClose={() => setShowSavedRecipes(false)} maxWidth="lg" fullWidth>
+      <Dialog 
+        open={showSavedRecipes} 
+        onClose={() => setShowSavedRecipes(false)} 
+        maxWidth="lg" 
+        fullWidth
+        TransitionProps={{
+          style: { transition: 'all 0.3s ease-in-out' }
+        }}
+      >
         <DialogTitle>My Saved Recipes</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
           <SavedRecipes />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showMealPlan} onClose={() => setShowMealPlan(false)} maxWidth="xl" fullWidth>
+      <Dialog 
+        open={showMealPlan} 
+        onClose={() => setShowMealPlan(false)} 
+        maxWidth="xl" 
+        fullWidth
+        TransitionProps={{
+          style: { transition: 'all 0.3s ease-in-out' }
+        }}
+      >
         <DialogTitle>My Meal Plans</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
           <MealPlansView />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showPantry} onClose={() => setShowPantry(false)} maxWidth="lg" fullWidth>
+      <Dialog 
+        open={showPantry} 
+        onClose={() => setShowPantry(false)} 
+        maxWidth="lg" 
+        fullWidth
+        TransitionProps={{
+          style: { transition: 'all 0.3s ease-in-out' }
+        }}
+      >
         <DialogTitle>Pantry Management</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
           <Pantry />
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showRecipeSuggestions} onClose={() => setShowRecipeSuggestions(false)} maxWidth="md" fullWidth>
+      <Dialog 
+        open={showRecipeSuggestions} 
+        onClose={() => setShowRecipeSuggestions(false)} 
+        maxWidth="md" 
+        fullWidth
+        TransitionProps={{
+          style: { transition: 'all 0.3s ease-in-out' }
+        }}
+      >
         <DialogTitle>Recipe Suggestions</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
           <VoiceRecipeAssistant />
