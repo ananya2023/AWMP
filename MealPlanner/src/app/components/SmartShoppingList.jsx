@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Plus, Check, X } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Chip,
-  Button,
-  Box,
-  IconButton,
-  Divider,
-  Stack
-} from '@mui/material';
 
 const SmartShoppingList = () => {
   const [items, setItems] = useState([

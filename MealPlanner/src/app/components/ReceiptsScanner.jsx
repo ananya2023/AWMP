@@ -1,22 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  TextField,
-  Grid,
-  IconButton,
-  Divider,
-  CircularProgress,
-  Paper,
-  Chip,
-  Autocomplete,
-  MenuItem
-} from '@mui/material';
-import { Upload, Camera, CheckCircle, Edit3, Calendar, Trash2, StickyNote } from 'lucide-react';
+import { Upload, Camera, CheckCircle, Edit3, Calendar, Trash2, StickyNote, X } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { addPantryItems, getScannedItems } from '../../api/pantryApi';
 
@@ -132,117 +115,146 @@ const ReceiptScanner = () => {
 
   if (showConfirmation) {
     return (
-      <Card>
-        <CardHeader
-          title={<Box display="flex" alignItems="center"><CheckCircle color="green" size={20} style={{ marginRight: 8 }} />Confirm Scanned Items</Box>}
-          subheader="Review quantities, units, categories, expiry dates, and notes before confirming."
-        />
-        <CardContent>
+      <div className="bg-white border border-gray-100 rounded-2xl">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="text-green-600" size={20} />
+            <h3 className="text-xl font-semibold text-gray-900">Confirm Scanned Items</h3>
+          </div>
+          <p className="text-gray-600">Review quantities, units, categories, expiry dates, and notes before confirming.</p>
+        </div>
+        <div className="p-6">
           {receiptDetails && (
-            <Box mb={3} p={2} sx={{ border: '1px dashed #ccc', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-              <Typography variant="body2"><strong>Vendor:</strong> {receiptDetails.vendor_name}</Typography>
-              <Typography variant="body2"><strong>Date:</strong> {receiptDetails.date}</Typography>
-              <Typography variant="body2"><strong>Subtotal:</strong> {receiptDetails.subtotal}</Typography>
-              <Typography variant="body2"><strong>Tax:</strong> {receiptDetails.tax}</Typography>
-              <Typography variant="body2"><strong>Total:</strong> {receiptDetails.total}</Typography>
-            </Box>
+            <div className="mb-6 p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
+              <p className="text-sm mb-1"><strong>Vendor:</strong> {receiptDetails.vendor_name}</p>
+              <p className="text-sm mb-1"><strong>Date:</strong> {receiptDetails.date}</p>
+              <p className="text-sm mb-1"><strong>Subtotal:</strong> {receiptDetails.subtotal}</p>
+              <p className="text-sm mb-1"><strong>Tax:</strong> {receiptDetails.tax}</p>
+              <p className="text-sm"><strong>Total:</strong> {receiptDetails.total}</p>
+            </div>
           )}
-          <Grid container spacing={2}>
+          <div className="space-y-4">
             {scannedItems.map(item => (
-              <Grid item xs={12} key={item.id}>
-                <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="subtitle1" fontWeight={600}>{item.name}</Typography>
-                    <IconButton onClick={() => removeItem(item.id)} color="error">
-                      <Trash2 size={18} />
-                    </IconButton>
-                  </Box>
-                  <Divider sx={{ my: 1 }} />
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        fullWidth
-                        label="Quantity"
-                        type="number"
-                        value={item.quantity}
-                        onChange={e => updateItemField(item.id, 'quantity', parseInt(e.target.value, 10) || '')}
-                        InputProps={{ startAdornment: <Edit3 size={16} style={{ marginRight: 8 }} /> }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={3}>
-                      <TextField
-                        select
-                        fullWidth
-                        label="Unit"
+              <div key={item.id} className="border border-gray-200 rounded-xl p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                  <button onClick={() => removeItem(item.id)} className="text-red-600 hover:text-red-700 p-1">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                      <div className="relative">
+                        <Edit3 size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={e => updateItemField(item.id, 'quantity', parseInt(e.target.value, 10) || '')}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                      <select
                         value={item.unit}
                         onChange={e => updateItemField(item.id, 'unit', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       >
                         {VALID_UNITS.map((unitOption) => (
-                          <MenuItem key={unitOption} value={unitOption}>{unitOption}</MenuItem>
+                          <option key={unitOption} value={unitOption}>{unitOption}</option>
                         ))}
-                      </TextField>
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Autocomplete
-                        multiple
-                        options={VALID_CATEGORIES}
-                        value={item.categories}
-                        onChange={(e, newValue) => updateItemField(item.id, 'categories', newValue)}
-                        renderTags={(value, getTagProps) =>
-                          value.map((option, index) => (
-                            <Chip variant="outlined" label={option} {...getTagProps({ index })} key={index} />
-                          ))
-                        }
-                        renderInput={(params) => <TextField {...params} label="Categories" />}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Expiry Date"
-                        type="date"
-                        value={item.expiryDate}
-                        onChange={e => updateItemField(item.id, 'expiryDate', e.target.value)}
-                        InputLabelProps={{ shrink: true }}
-                        error={!item.expiryDate}
-                        helperText={!item.expiryDate ? "Expiry date required" : ""}
-                        InputProps={{ startAdornment: <Calendar size={16} style={{ marginRight: 8 }} /> }}
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Notes"
-                        multiline
-                        minRows={2}
-                        value={item.notes}
-                        onChange={e => updateItemField(item.id, 'notes', e.target.value)}
-                        InputProps={{ startAdornment: <StickyNote size={16} style={{ marginRight: 8 }} /> }}
-                      />
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Grid>
+                      </select>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Categories</label>
+                      <div className="flex flex-wrap gap-2">
+                        {VALID_CATEGORIES.map(category => (
+                          <button
+                            key={category}
+                            onClick={() => {
+                              const isSelected = item.categories.includes(category);
+                              const newCategories = isSelected
+                                ? item.categories.filter(c => c !== category)
+                                : [...item.categories, category];
+                              updateItemField(item.id, 'categories', newCategories);
+                            }}
+                            className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                              item.categories.includes(category)
+                                ? 'bg-green-100 border-green-500 text-green-700'
+                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                      <div className="relative">
+                        <Calendar size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="date"
+                          value={item.expiryDate}
+                          onChange={e => updateItemField(item.id, 'expiryDate', e.target.value)}
+                          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                            !item.expiryDate ? 'border-red-300' : 'border-gray-300'
+                          }`}
+                        />
+                      </div>
+                      {!item.expiryDate && <p className="text-red-500 text-xs mt-1">Expiry date required</p>}
+                    </div>
+                    <div className="sm:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                      <div className="relative">
+                        <StickyNote size={16} className="absolute left-3 top-3 text-gray-400" />
+                        <textarea
+                          value={item.notes}
+                          onChange={e => updateItemField(item.id, 'notes', e.target.value)}
+                          rows={2}
+                          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Grid>
-          <Box mt={4} display="flex" gap={2}>
-            <Button fullWidth variant="contained" color="success" onClick={handleConfirmItems}>Add Items to Pantry</Button>
-            <Button fullWidth variant="outlined" onClick={() => { setScannedItems([]); setReceiptDetails(null); setShowConfirmation(false); }}>Cancel</Button>
-          </Box>
-        </CardContent>
-      </Card>
+          </div>
+          <div className="mt-6 flex gap-3">
+            <button
+              onClick={handleConfirmItems}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Add Items to Pantry
+            </button>
+            <button
+              onClick={() => { setScannedItems([]); setReceiptDetails(null); setShowConfirmation(false); }}
+              className="flex-1 border border-gray-300 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader
-        title={<Box display="flex" alignItems="center"><Camera size={20} style={{ marginRight: 8 }} />Quick Add from Receipt</Box>}
-        subheader="Scan your grocery receipt to instantly add items to your pantry"
-      />
-      <CardContent>
+    <div className="bg-white border border-gray-100 rounded-2xl">
+      <div className="p-6 border-b border-gray-100">
+        <div className="flex items-center gap-2 mb-2">
+          <Camera size={20} className="text-gray-700" />
+          <h3 className="text-xl font-semibold text-gray-900">Quick Add from Receipt</h3>
+        </div>
+        <p className="text-gray-600">Scan your grocery receipt to instantly add items to your pantry</p>
+      </div>
+      <div className="p-6">
         {isScanning ? (
-          <Box textAlign="center" py={5}>
+          <div className="text-center py-12">
             <Lottie 
               animationData={{
                 "v": "5.7.4",
@@ -283,9 +295,9 @@ const ReceiptScanner = () => {
               style={{ width: 80, height: 80, margin: '0 auto 16px' }}
               loop
             />
-            <Typography variant="body1" mt={2}>Scanning receipt and extracting items...</Typography>
-            <Typography variant="caption" color="textSecondary">This may take a few seconds (powered by AI)</Typography>
-          </Box>
+            <p className="text-lg font-medium text-gray-900 mt-4">Scanning receipt and extracting items...</p>
+            <p className="text-sm text-gray-500 mt-2">This may take a few seconds (powered by AI)</p>
+          </div>
         ) : (
           <>
             <input
@@ -295,22 +307,23 @@ const ReceiptScanner = () => {
               style={{ display: 'none' }}
               accept="image/png, image/jpeg, application/pdf"
             />
-            <Paper
-              variant="outlined"
-              sx={{ p: 5, textAlign: 'center', border: '2px dashed #ccc', '&:hover': { borderColor: 'green' } }}
-            >
-              <Upload size={40} style={{ marginBottom: 16, color: '#9e9e9e' }} />
-              <Typography variant="body1" gutterBottom>
+            <div className="p-12 text-center border-2 border-dashed border-gray-300 rounded-xl hover:border-green-500 transition-colors">
+              <Upload size={40} className="mx-auto mb-4 text-gray-400" />
+              <p className="text-lg text-gray-700 mb-4">
                 Take a photo or upload your grocery receipt
-              </Typography>
-              <Button variant="contained" color="success" onClick={triggerFileInput} startIcon={<Camera size={16} />}>
+              </p>
+              <button
+                onClick={triggerFileInput}
+                className="flex items-center gap-2 mx-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                <Camera size={16} />
                 Scan Receipt
-              </Button>
-            </Paper>
+              </button>
+            </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

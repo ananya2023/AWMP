@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Typography, 
-  Card, 
-  CardContent,
-  CircularProgress,
-  Chip,
-  Stack
-} from '@mui/material';
-import { Search, Lightbulb } from 'lucide-react';
+import { Search, Lightbulb, Loader2 } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_APP_GEMINI_API_KEY);
@@ -23,7 +12,7 @@ const SmartSubstitutions = () => {
   const [loading, setLoading] = useState(false);
 
   // Hardcoded user preferences (will come from user collection in DB)
-  const allergies = ['Dairy', 'Nuts'];
+  const allergies = [ 'Nuts'];
   const dietaryPrefs = ['Vegetarian'];
 
   const getSubstitutions = async () => {
@@ -64,85 +53,100 @@ const SmartSubstitutions = () => {
   };
 
   return (
-    <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Box display="flex" alignItems="center" gap={1} mb={3}>
-          <Lightbulb size={24} color="#4CAF50" />
-          <Typography variant="h6" fontWeight="bold">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200">
+      <div className="p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Lightbulb size={24} className="text-emerald-600" />
+          <h2 className="text-xl font-bold text-gray-900">
             Smart Recipe Substitutions
-          </Typography>
-        </Box>
+          </h2>
+        </div>
 
-        <Stack spacing={2} mb={3}>
-          <TextField
-            fullWidth
-            label="Missing Ingredient"
-            placeholder="e.g., heavy cream, eggs, butter"
-            value={ingredient}
-            onChange={(e) => setIngredient(e.target.value)}
-          />
-          <TextField
-            fullWidth
-            label="Recipe Name (Optional)"
-            placeholder="e.g., pasta sauce, cake, soup"
-            value={recipeName}
-            onChange={(e) => setRecipeName(e.target.value)}
-          />
-          <Box>
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              Your Profile: 
-            </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap">
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Missing Ingredient
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., heavy cream, eggs, butter"
+              value={ingredient}
+              onChange={(e) => setIngredient(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Recipe Name (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., pasta sauce, cake, soup"
+              value={recipeName}
+              onChange={(e) => setRecipeName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          
+          <div>
+            <p className="text-sm text-gray-600 mb-2">
+              Your Profile:
+            </p>
+            <div className="flex flex-wrap gap-2">
               {allergies.map((allergy) => (
-                <Chip key={allergy} label={`Allergic to ${allergy}`} size="small" color="error" />
+                <span key={allergy} className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+                  Allergic to {allergy}
+                </span>
               ))}
               {dietaryPrefs.map((pref) => (
-                <Chip key={pref} label={pref} size="small" color="success" />
+                <span key={pref} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full">
+                  {pref}
+                </span>
               ))}
-            </Stack>
-          </Box>
-          <Button
-            variant="contained"
+            </div>
+          </div>
+          
+          <button
             onClick={getSubstitutions}
             disabled={loading || !ingredient.trim()}
-            startIcon={loading ? <CircularProgress size={16} /> : <Search size={16} />}
-            sx={{ bgcolor: '#4CAF50', '&:hover': { bgcolor: '#45a049' } }}
+            className="flex items-center gap-2 w-full px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Search size={16} />
+            )}
             {loading ? 'Finding Substitutes...' : 'Get Substitutions'}
-          </Button>
-        </Stack>
+          </button>
+        </div>
 
         {substitutions.length > 0 && (
-          <Box>
-            <Typography variant="subtitle1" fontWeight="bold" mb={2}>
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
               Suggested Substitutes:
-            </Typography>
-            <Stack spacing={2}>
+            </h3>
+            <div className="space-y-3">
               {substitutions.map((sub, index) => (
-                <Card key={index} variant="outlined" sx={{ bgcolor: '#f8f9fa' }}>
-                  <CardContent sx={{ p: 2 }}>
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <Chip 
-                        label={sub.substitute} 
-                        color="primary" 
-                        size="small"
-                        sx={{ fontWeight: 'bold' }}
-                      />
-                      <Typography variant="body2" color="text.secondary">
-                        {sub.ratio}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2">
-                      {sub.reason}
-                    </Typography>
-                  </CardContent>
-                </Card>
+                <div key={index} className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
+                      {sub.substitute}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      {sub.ratio}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    {sub.reason}
+                  </p>
+                </div>
               ))}
-            </Stack>
-          </Box>
+            </div>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

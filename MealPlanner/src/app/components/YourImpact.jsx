@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box,  Typography, Card, CardContent, Stack } from '@mui/material';
 import { TrendingDown, Leaf, DollarSign, Award } from 'lucide-react';
 
 const stats = [
@@ -7,69 +6,67 @@ const stats = [
     title: 'Food Saved',
     value: '12.5 kg',
     change: '+15% this month',
-    icon: <Leaf size={28} color="#16a34a" />, // green-600
-    changeColor: 'success.main',
+    icon: <Leaf size={28} className="text-green-600" />,
+    changeColor: 'text-green-600',
   },
   {
     title: 'Money Saved',
     value: '$156',
     change: '+22% this month',
-    icon: <DollarSign size={28} color="#2563eb" />, // blue-600
-    changeColor: 'info.main',
+    icon: <DollarSign size={28} className="text-blue-600" />,
+    changeColor: 'text-blue-600',
   },
   {
     title: 'Waste Reduction',
     value: '85%',
     change: '+8% this month',
-    icon: <TrendingDown size={28} color="#7c3aed" />, // purple-600
-    changeColor: 'secondary.main',
+    icon: <TrendingDown size={28} className="text-purple-600" />,
+    changeColor: 'text-purple-600',
   },
   {
     title: 'Eco Score',
     value: '94/100',
     change: '+5% this month',
-    icon: <Award size={28} color="#ea580c" />, // orange-600
-    changeColor: 'warning.main',
+    icon: <Award size={28} className="text-orange-600" />,
+    changeColor: 'text-orange-600',
   },
 ];
 
 const YourImpact = () => {
   return (
-    <Box py={6} width="100%">
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
+    <div className="py-12 w-full">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">
         Your Impact
-      </Typography>
-      <Typography variant="body1" color="text.secondary" mb={4}>
+      </h2>
+      <p className="text-gray-600 mb-8">
         Track your progress in reducing food waste
-      </Typography>
+      </p>
 
-      <Stack direction="row" container gap="2rem" justifyContent="space-between" >
+      <div className="flex gap-8 justify-between">
         {stats.map((stat, index) => (
-          <Stack key={index} sx={{ width : '100%'}}>
-            <Card elevation={2}>
-              <CardContent>
-                <Box sx={{display: 'flex', flexDirection: 'row' , gap : "2rem", alignItems:"center"}}>
-                  <Box textAlign="left">
-                    <Typography variant="subtitle2" color="text.secondary" mb={0.5}>
-                      {stat.title}
-                    </Typography>
-                    <Typography variant="h5" fontWeight="bold" mb={0.5}>
-                      {stat.value}
-                    </Typography>
-                    <Typography variant="caption" color={stat.changeColor}>
-                      {stat.change}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    {stat.icon}
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Stack>
+          <div key={index} className="w-full">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+              <div className="flex items-center gap-8">
+                <div className="text-left flex-1">
+                  <p className="text-sm text-gray-600 mb-1">
+                    {stat.title}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">
+                    {stat.value}
+                  </p>
+                  <p className={`text-xs ${stat.changeColor}`}>
+                    {stat.change}
+                  </p>
+                </div>
+                <div>
+                  {stat.icon}
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
-      </Stack>
-    </Box>
+      </div>
+    </div>
   );
 };
 

@@ -1,23 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Stack,
-  IconButton,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Tooltip,
-  Chip,
-  OutlinedInput,
-} from '@mui/material';
-import { Plus, Calendar, ImagePlus } from 'lucide-react';
+import { Plus, Calendar, ImagePlus, X } from 'lucide-react';
 import { addPantryItems } from '../../api/pantryApi';
 
 const CATEGORIES = [
@@ -77,120 +59,161 @@ const AddItemDialog = ({ isOpen, onClose }) => {
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Plus size={20} />
-          <Typography variant="h6">Add Item to Inventory</Typography>
-        </Stack>
-      </DialogTitle>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <Plus size={20} className="text-emerald-600" />
+            <h2 className="text-xl font-bold text-gray-900">Add Item to Inventory</h2>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
 
-      <DialogContent dividers>
-        <Stack spacing={3}>
-          <TextField
-            label="Item Name *"
-            fullWidth
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-          />
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Item Name *
+              </label>
+              <input
+                type="text"
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
 
-          <Stack direction="row" spacing={2}>
-            <TextField
-              label="Quantity *"
-              type="number"
-              fullWidth
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Unit *</InputLabel>
-              <Select
-                label="Unit *"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              >
-                {UNITS.map((u) => (
-                  <MenuItem key={u} value={u}>{u}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-
-          <FormControl fullWidth>
-            <InputLabel>Category *</InputLabel>
-            <Select
-              multiple
-              value={categories}
-              onChange={(e) => setCategories(e.target.value)}
-              input={<OutlinedInput label="Category" />}
-              renderValue={(selected) => (
-                <Stack direction="row" flexWrap="wrap" gap={1}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity *
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Unit *
+                </label>
+                <select
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  <option value="">Select unit</option>
+                  {UNITS.map((u) => (
+                    <option key={u} value={u}>{u}</option>
                   ))}
-                </Stack>
-              )}
-            >
-              {CATEGORIES.map((cat) => (
-                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                </select>
+              </div>
+            </div>
 
-          <TextField
-            label="Expiry Date *"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            value={expiryDate}
-            onChange={(e) => setExpiryDate(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <IconButton disabled edge="start" sx={{ mr: 1 }}>
-                  <Calendar size={16} />
-                </IconButton>
-              ),
-            }}
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Categories *
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {categories.map((cat) => (
+                  <span key={cat} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full flex items-center gap-1">
+                    {cat}
+                    <button 
+                      onClick={() => setCategories(categories.filter(c => c !== cat))}
+                      className="text-emerald-600 hover:text-emerald-800"
+                    >
+                      <X size={14} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <select 
+                onChange={(e) => {
+                  if (e.target.value && !categories.includes(e.target.value)) {
+                    setCategories([...categories, e.target.value]);
+                  }
+                  e.target.value = '';
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              >
+                <option value="">Select categories...</option>
+                {CATEGORIES.filter(cat => !categories.includes(cat)).map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
 
-          <TextField
-            label="Notes"
-            fullWidth
-            multiline
-            rows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry Date *
+              </label>
+              <div className="relative">
+                <Calendar size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            </div>
 
-          <TextField
-            label="Image URL"
-            fullWidth
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <IconButton disabled edge="start" sx={{ mr: 1 }}>
-                  <ImagePlus size={16} />
-                </IconButton>
-              ),
-            }}
-          />
-        </Stack>
-      </DialogContent>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
+              />
+            </div>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} variant="outlined">Cancel</Button>
-        <Button
-          onClick={handleAdd}
-          variant="contained"
-          sx={{ backgroundColor: '#16a34a', '&:hover': { backgroundColor: '#15803d' } }}
-          startIcon={<Plus size={16} />}
-        >
-          Add to Inventory
-        </Button>
-      </DialogActions>
-    </Dialog>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Image URL
+              </label>
+              <div className="relative">
+                <ImagePlus size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3 p-6 border-t border-gray-200">
+          <button 
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleAdd}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            <Plus size={16} />
+            Add to Inventory
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

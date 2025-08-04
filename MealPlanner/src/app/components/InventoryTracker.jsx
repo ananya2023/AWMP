@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Clock, AlertTriangle } from 'lucide-react';
-import {
-  Card, CardContent, CardHeader, Typography, Button,
-  Chip, Box, Stack, Divider
-} from '@mui/material';
 import Lottie from 'lottie-react';
 import AddItemDialog from './AddItemDialog';
 import { getPantryItems } from '../../api/pantryApi';
@@ -73,26 +69,22 @@ const InventoryTracker = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader
-          title={
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography>Your Inventory</Typography>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Plus size={16} />}
-                onClick={() => setIsAddItemOpen(true)}
-                sx={{ backgroundColor: '#16a34a', '&:hover': { backgroundColor: '#15803d' } }}
-              >
-                Add Item
-              </Button>
-            </Box>
-          }
-        />
-        <CardContent>
+      <div className="bg-white border border-gray-100 rounded-2xl">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold text-gray-900">Your Inventory</h3>
+            <button
+              onClick={() => setIsAddItemOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200"
+            >
+              <Plus size={16} />
+              Add Item
+            </button>
+          </div>
+        </div>
+        <div className="p-6">
           {loading ? (
-            <Box textAlign="center" py={4}>
+            <div className="text-center py-8">
               <Lottie 
                 animationData={{
                   "v": "5.7.4",
@@ -133,73 +125,62 @@ const InventoryTracker = () => {
                 style={{ width: 60, height: 60, margin: '0 auto 16px' }}
                 loop
               />
-              <Typography variant="body2" color="text.secondary">
+              <p className="text-gray-500">
                 Loading your pantry items...
-              </Typography>
-            </Box>
+              </p>
+            </div>
           ) : (
             <>
-              <Stack spacing={2}>
-            {inventoryItems.map((item) => {
-              const daysLeft = calculateDaysLeft(item.expiry_date);
-              const urgency = getUrgencyProps(daysLeft);
+              <div className="space-y-3">
+                {inventoryItems.map((item) => {
+                  const daysLeft = calculateDaysLeft(item.expiry_date);
+                  const urgency = getUrgencyProps(daysLeft);
 
-              return (
-                <Box
-                  key={item.id}
-                  p={2}
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{
-                    backgroundColor: '#f9fafb',
-                    borderRadius: 2,
-                    '&:hover': { backgroundColor: '#f3f4f6' },
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={500}>
-                      {item.item_name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.quantity} {item.unit}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={
-                      <Box display="flex" alignItems="center">
+                  return (
+                    <div
+                      key={item.id}
+                      className="p-4 flex justify-between items-center bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+                    >
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {item.item_name}
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          {item.quantity} {item.unit}
+                        </p>
+                      </div>
+                      <div
+                        className="flex items-center px-3 py-1 rounded-full text-sm font-medium border"
+                        style={{
+                          backgroundColor: urgency.background,
+                          color: urgency.color,
+                          borderColor: urgency.color,
+                        }}
+                      >
                         {urgency.icon}
                         <span>{daysLeft}d left</span>
-                      </Box>
-                    }
-                    sx={{
-                      bgcolor: urgency.background,
-                      color: urgency.color,
-                      border: `1px solid ${urgency.color}`,
-                      fontWeight: 500,
-                    }}
-                  />
-                </Box>
-              );
-            })}
-              </Stack>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-              <Divider sx={{ my: 3 }} />
+              <div className="border-t border-gray-200 my-6"></div>
 
-              <Box textAlign="center">
-                <Typography variant="body2" color="text.secondary">
-                  <AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 4, color: '#f97316' }} />
+              <div className="text-center">
+                <p className="text-sm text-gray-500 flex items-center justify-center gap-1">
+                  <AlertTriangle size={16} className="text-orange-500" />
                   {inventoryItems.filter(i => calculateDaysLeft(i.expiry_date) <= 3).length} items expiring soon
-                </Typography>
-              </Box>
+                </p>
+              </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <AddItemDialog
         isOpen={isAddItemOpen}
-        onClose={handleAddItemClose}  // <-- refresh after add
+        onClose={handleAddItemClose}
       />
     </>
   );

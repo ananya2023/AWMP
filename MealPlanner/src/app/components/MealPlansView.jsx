@@ -1,15 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Box,
-  IconButton,
-  Grid,
-} from '@mui/material';
-import {
   Calendar,
   Clock,
   Users,
@@ -71,166 +61,156 @@ const MealPlansView = () => {
   };
 
   return (
-    <Box sx={{ px: 2, py: 4 }}>
+    <div className="px-4 py-6">
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h5" fontWeight="bold">This Week's Meal Plan</Typography>
-          <Typography variant="body2" color="text.secondary">Manage your planned meals for the week</Typography>
-        </Box>
-        <Button
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">This Week's Meal Plan</h1>
+          <p className="text-sm text-gray-600">Manage your planned meals for the week</p>
+        </div>
+        <button
           onClick={() => setIsDialogOpen(true)}
-          variant="contained"
-          sx={{ backgroundColor: 'green', '&:hover': { backgroundColor: 'darkgreen' } }}
-          startIcon={<Plus size={18} />}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
         >
+          <Plus size={18} />
           Add Meal
-        </Button>
-      </Box>
+        </button>
+      </div>
 
       {/* Weekly Overview */}
-      <Grid container spacing={2}>
+      <div className="space-y-4">
         {weekDays.map((day) => (
-          <Grid item xs={12} key={day}>
-            <Card elevation={1}>
-              <CardHeader
-                title={
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box display="flex" alignItems="center">
-                      <Calendar size={16} style={{ marginRight: 8, color: 'green' }} />
-                      <Typography fontWeight="bold">{day}</Typography>
-                    </Box>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<Plus size={16} />}
-                      onClick={() => handleAddMeal(day, 'dinner')}
+          <div key={day} className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <Calendar size={16} className="mr-2 text-emerald-600" />
+                  <h3 className="font-bold text-gray-900">{day}</h3>
+                </div>
+                <button
+                  onClick={() => handleAddMeal(day, 'dinner')}
+                  className="flex items-center gap-2 px-3 py-1 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Plus size={16} />
+                  Plan Meal
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {mealTypes.map((mealType) => {
+                  const meal = mealPlans[day]?.[mealType.key];
+                  const bgColor = meal ? mealType.bg : 'transparent';
+                  const borderColor = meal ? mealType.color : '#d1d5db';
+                  const borderStyle = meal ? 'solid' : 'dashed';
+                  
+                  return (
+                    <div
+                      key={mealType.key}
+                      className={`border-2 rounded-lg p-3 cursor-pointer hover:shadow-sm transition-shadow ${
+                        meal ? 'opacity-100' : 'opacity-50'
+                      }`}
+                      style={{
+                        borderColor,
+                        borderStyle,
+                        backgroundColor: bgColor
+                      }}
+                      onClick={() => meal ? handleEditMeal(day, mealType.key) : handleAddMeal(day, mealType.key)}
                     >
-                      Plan Meal
-                    </Button>
-                  </Box>
-                }
-              />
-              <CardContent>
-                <Grid container spacing={2}>
-                  {mealTypes.map((mealType) => {
-                    const meal = mealPlans[day]?.[mealType.key];
-                    return (
-                      <Grid item xs={12} md={4} key={mealType.key}>
-                        <Box
-                          sx={{
-                            border: '2px solid',
-                            borderColor: meal ? mealType.color : 'grey.300',
-                            borderStyle: meal ? 'solid' : 'dashed',
-                            borderRadius: 2,
-                            p: 2,
-                            bgcolor: meal ? mealType.bg : 'transparent',
-                            opacity: meal ? 1 : 0.5,
-                            cursor: 'pointer',
-                            '&:hover': { boxShadow: 1 }
-                          }}
-                          onClick={() => meal ? handleEditMeal(day, mealType.key) : handleAddMeal(day, mealType.key)}
-                        >
-                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                            <Typography fontSize={12} fontWeight={500}>
-                              <span style={{ marginRight: 6 }}>{mealType.icon}</span>
-                              {mealType.label}
-                            </Typography>
-                            {meal && (
-                              <Box display="flex" gap={1}>
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditMeal(day, mealType.key);
-                                  }}
-                                >
-                                  <Edit size={14} />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteMeal(day, mealType.key);
-                                  }}
-                                >
-                                  <Trash2 size={14} />
-                                </IconButton>
-                              </Box>
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="text-xs font-medium">
+                          <span className="mr-2">{mealType.icon}</span>
+                          {mealType.label}
+                        </div>
+                        {meal && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditMeal(day, mealType.key);
+                              }}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteMeal(day, mealType.key);
+                              }}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {meal ? (
+                        <>
+                          <p className="text-sm font-medium text-gray-900 truncate">{meal.name}</p>
+                          <div className="flex gap-3 mt-2 text-gray-500">
+                            {meal.cookTime && (
+                              <div className="flex items-center text-xs">
+                                <Clock size={12} className="mr-1" />
+                                {meal.cookTime}
+                              </div>
                             )}
-                          </Box>
-                          {meal ? (
-                            <>
-                              <Typography variant="body2" fontWeight={500} noWrap>{meal.name}</Typography>
-                              <Box display="flex" gap={2} mt={1} color="text.secondary">
-                                {meal.cookTime && (
-                                  <Box display="flex" alignItems="center" fontSize={12}>
-                                    <Clock size={12} style={{ marginRight: 4 }} />
-                                    {meal.cookTime}
-                                  </Box>
-                                )}
-                                {meal.servings && (
-                                  <Box display="flex" alignItems="center" fontSize={12}>
-                                    <Users size={12} style={{ marginRight: 4 }} />
-                                    {meal.servings}
-                                  </Box>
-                                )}
-                              </Box>
-                              {meal.notes && (
-                                <Typography variant="caption" display="block" color="text.secondary" mt={1} noWrap>
-                                  {meal.notes}
-                                </Typography>
-                              )}
-                            </>
-                          ) : (
-                            <Box textAlign="center" mt={2}>
-                              <Utensils size={24} color="#aaa" />
-                              <Typography variant="caption" color="text.secondary">Not planned</Typography>
-                            </Box>
+                            {meal.servings && (
+                              <div className="flex items-center text-xs">
+                                <Users size={12} className="mr-1" />
+                                {meal.servings}
+                              </div>
+                            )}
+                          </div>
+                          {meal.notes && (
+                            <p className="text-xs text-gray-500 mt-2 truncate">
+                              {meal.notes}
+                            </p>
                           )}
-                        </Box>
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
+                        </>
+                      ) : (
+                        <div className="text-center mt-4">
+                          <Utensils size={24} className="text-gray-400 mx-auto" />
+                          <p className="text-xs text-gray-500 mt-1">Not planned</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* Weekly Summary */}
-      <Card sx={{ mt: 4 }}>
-        <CardHeader title={<Typography variant="h6">Week Summary</Typography>} />
-        <CardContent>
-          <Grid container spacing={2} textAlign="center">
-            <Grid item xs={6} md={3}>
-              <Box p={2} borderRadius={2} bgcolor="#E8F5E9">
-                <Typography variant="h6" color="green">12</Typography>
-                <Typography variant="body2">Planned Meals</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <Box p={2} borderRadius={2} bgcolor="#E3F2FD">
-                <Typography variant="h6" color="blue">9</Typography>
-                <Typography variant="body2">Missing Plans</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <Box p={2} borderRadius={2} bgcolor="#FFF9C4">
-                <Typography variant="h6" color="orange">3</Typography>
-                <Typography variant="body2">Quick Meals</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} md={3}>
-              <Box p={2} borderRadius={2} bgcolor="#F3E5F5">
-                <Typography variant="h6" color="purple">57%</Typography>
-                <Typography variant="body2">Week Complete</Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Week Summary</h3>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="p-4 rounded-lg bg-green-50">
+              <div className="text-xl font-semibold text-green-600">12</div>
+              <div className="text-sm text-gray-600">Planned Meals</div>
+            </div>
+            <div className="p-4 rounded-lg bg-blue-50">
+              <div className="text-xl font-semibold text-blue-600">9</div>
+              <div className="text-sm text-gray-600">Missing Plans</div>
+            </div>
+            <div className="p-4 rounded-lg bg-yellow-50">
+              <div className="text-xl font-semibold text-yellow-600">3</div>
+              <div className="text-sm text-gray-600">Quick Meals</div>
+            </div>
+            <div className="p-4 rounded-lg bg-purple-50">
+              <div className="text-xl font-semibold text-purple-600">57%</div>
+              <div className="text-sm text-gray-600">Week Complete</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <MealPlanDialog
         isOpen={isDialogOpen}
@@ -238,7 +218,7 @@ const MealPlansView = () => {
         selectedDay={selectedDay}
         mealType={selectedMealType}
       />
-    </Box>
+    </div>
   );
 };
 

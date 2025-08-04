@@ -7,116 +7,103 @@ import VoiceRecipeAssistant from '../components/VoiceRecipeAssistant';
 import InventoryTracker from '../components/InventoryTracker';
 import MealPlanner from '../components/MealPlanner';
 import SmartShoppingList from '../components/SmartShoppingList';
-// import Achievements from '../components/Achievements'; from '../components/SmartShoppingList';
-import { Container, Box, Typography ,Grid} from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-// Optional theme customization
-const theme = createTheme({
-  palette: {
-    background: {
-      default: '#f9fafb', // similar to Tailwind's bg-gray-50
-    },
-  },
-});
+// import Achievements from '../components/Achievements';
 
 const Home = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <Header />
-       
-        <Box sx={{ py: 8, bgcolor: 'white' }}>
-          <Container maxWidth="lg">
-            <Grid container spacing={4}>
-              <Grid item xs={12} lg={8}>
-                <Box display="flex" flexDirection="column" gap={4}>
-                   {/* <YourImpact /> */}
-                  {/* <RecipeSuggestions /> */}
-                </Box>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
-        {/* <ReceiptScanner />
-        <AIRecipeGenerator /> */}
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+     
+      <div className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3">
+              <div className="flex flex-col gap-8">
+                 {/* <YourImpact /> */}
+                {/* <RecipeSuggestions /> */}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* <ReceiptScanner />
+      <AIRecipeGenerator /> */}
 
-        {/* Section: Your Impact */}
+      {/* Section: Your Impact */}
 
-
-        {/* Uncomment and convert the rest as needed: */}
-        
-        <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
-          <Container maxWidth="lg">
-            <Box mb={4}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Smart Pantry Management
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Add items quickly and get AI-powered recipe suggestions
-              </Typography>
-            </Box>
-            <Grid container spacing={4}>
-              <Grid item xs={12} lg={6}>
-                <ReceiptScanner />
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
-        <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
-          <Container maxWidth="lg">
-            <Box mb={4}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-               What Can I Make Today
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
+      {/* Smart Pantry Management Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Smart Pantry Management
+            </h2>
+            <p className="text-lg text-gray-600">
+              Add items quickly and get AI-powered recipe suggestions
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <ReceiptScanner />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Recipe Assistant Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              What Can I Make Today
+            </h2>
+            <p className="text-lg text-gray-600">
               Create recipes with your available ingredients
-              </Typography>
-            </Box>
-            <Grid container spacing={4}>
-              <Grid item xs={12} lg={6}>
-                <VoiceRecipeAssistant />
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <VoiceRecipeAssistant />
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <Box sx={{ py: 8, bgcolor: 'white' }}>
-          <Container maxWidth="lg">
-            <Grid container spacing={4}>
-              <Grid item xs={12} lg={8}>
-                <Box display="flex" flexDirection="column" gap={4}>
-                  <InventoryTracker />
-                  {/* <RecipeSuggestions /> */}
-                </Box>
-              </Grid>
-              <Grid item xs={12} lg={4}>
-                <Box display="flex" flexDirection="column" gap={4}>
-                  <MealPlanner />
-                  <SmartShoppingList />
-                </Box>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
-         {/*
-
-        <Box sx={{ py: 8, bgcolor: 'grey.50' }}>
-          <Container maxWidth="lg">
-            <Box mb={4}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Your Journey
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Celebrate your food waste reduction achievements
-              </Typography>
-            </Box>
-            <Achievements />
-          </Container>
-        </Box>
-        */}
-      </Box>
-    </ThemeProvider>
+      {/* Main Content Section */}
+      <div className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3">
+              <div className="flex flex-col gap-8">
+                <InventoryTracker />
+                {/* <RecipeSuggestions /> */}
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="flex flex-col gap-8">
+                <MealPlanner />
+                <SmartShoppingList />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+       {/*
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+              Your Journey
+            </h2>
+            <p className="text-lg text-gray-600">
+              Celebrate your food waste reduction achievements
+            </p>
+          </div>
+          <Achievements />
+        </div>
+      </div>
+      */}
+    </div>
   );
 };
 

@@ -1,61 +1,43 @@
 import { useState } from "react";
-import { Box, Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import LoginForm from "./LoginForm";
 import SignUpForm from "./SignUpForm";
 
 const AuthForm = () => {
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleToggle = (
-    event,
-    newValue
-  ) => {
-    if (newValue !== null) {
-      setIsSignUp(newValue === "signup");
-    }
-  };
-
   return (
-    <Paper elevation={3} sx={{ p: 4, borderRadius: 2, maxWidth: 400, mx: "auto" }}>
+    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto">
       {/* Toggle Buttons */}
-      <ToggleButtonGroup
-        value={isSignUp ? "signup" : "login"}
-        exclusive
-        onChange={handleToggle}
-        fullWidth
-        sx={{
-          mb: 3,
-          bgcolor: "grey.100",
-          borderRadius: 2,
-          "& .MuiToggleButton-root": {
-            flex: 1,
-            fontWeight: 500,
-            fontSize: "0.875rem",
-            border: "none",
-            borderRadius: 1,
-            px: 2,
-            py: 1,
-            transition: "all 0.2s",
-          },
-          "& .Mui-selected": {
-            bgcolor: "primary.main",
-            color: "#fff",
-            boxShadow: 1,
-            "&:hover": {
-              bgcolor: "primary.dark",
-            },
-          },
-        }}
-      >
-        <ToggleButton value="login">Login</ToggleButton>
-        <ToggleButton value="signup">Sign Up</ToggleButton>
-      </ToggleButtonGroup>
+      <div className="bg-gray-100 rounded-xl p-1 mb-6">
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            onClick={() => setIsSignUp(false)}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+              !isSignUp
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Login
+          </button>
+          <button
+            onClick={() => setIsSignUp(true)}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+              isSignUp
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Sign Up
+          </button>
+        </div>
+      </div>
 
       {/* Form Content */}
-      <Box sx={{ transition: "all 0.3s ease-in-out" }}>
+      <div className="transition-all duration-300 ease-in-out">
         {isSignUp ? <SignUpForm /> : <LoginForm />}
-      </Box>
-    </Paper>
+      </div>
+    </div>
   );
 };
 

@@ -6,20 +6,8 @@ import {
   ChefHat,
   Plus,
   Heart,
+  Loader2,
 } from 'lucide-react';
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Typography,
-  Chip,
-  Grid,
-  TextField,
-  IconButton,
-  CircularProgress,
-} from '@mui/material';
 import MealPlanDialog from './MealPlanDialog';
 
 

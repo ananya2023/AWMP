@@ -4,22 +4,8 @@ import {
   Clock,
   Users,
   Plus,
+  X,
 } from 'lucide-react';
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogActions,
-  TextField,
-  Grid,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControl,
-  Box,
-  Typography,
-} from '@mui/material';
 
 const MealPlanDialog = ({
   isOpen,
@@ -73,119 +59,144 @@ const MealPlanDialog = ({
     setPlannedMealType(mealType);
   }, [suggestedRecipe, selectedDay, mealType]);
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Box display="flex" alignItems="center">
-          <Calendar size={20} style={{ marginRight: 8 }} />
-          Plan Your Meal
-        </Box>
-      </DialogTitle>
-      <DialogContent dividers>
-        <Box component="form" noValidate>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center">
+            <Calendar size={20} className="mr-2 text-emerald-600" />
+            <h2 className="text-xl font-bold text-gray-900">Plan Your Meal</h2>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          <form className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Recipe/Dish Name *
+              </label>
+              <input
+                type="text"
                 required
-                fullWidth
-                label="Recipe/Dish Name"
                 value={recipeName}
                 onChange={(e) => setRecipeName(e.target.value)}
                 placeholder="Enter recipe or dish name"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
-            </Grid>
+            </div>
 
-            <Grid item xs={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Day</InputLabel>
-                <Select
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Day *
+                </label>
+                <select
+                  required
                   value={plannedDay}
-                  label="Day"
                   onChange={(e) => setPlannedDay(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   {days.map((day) => (
-                    <MenuItem key={day} value={day}>
+                    <option key={day} value={day}>
                       {day}
-                    </MenuItem>
+                    </option>
                   ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                </select>
+              </div>
 
-            <Grid item xs={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Meal Type</InputLabel>
-                <Select
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Meal Type *
+                </label>
+                <select
+                  required
                   value={plannedMealType}
-                  label="Meal Type"
                   onChange={(e) => setPlannedMealType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 >
                   {mealTypes.map((meal) => (
-                    <MenuItem key={meal.value} value={meal.value}>
+                    <option key={meal.value} value={meal.value}>
                       {meal.label}
-                    </MenuItem>
+                    </option>
                   ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                </select>
+              </div>
+            </div>
 
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Cook Time"
-                placeholder="e.g., 30 min"
-                value={cookTime}
-                onChange={(e) => setCookTime(e.target.value)}
-                InputProps={{
-                  startAdornment: <Clock size={16} style={{ marginRight: 6 }} />,
-                }}
-              />
-            </Grid>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Cook Time
+                </label>
+                <div className="relative">
+                  <Clock size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="e.g., 30 min"
+                    value={cookTime}
+                    onChange={(e) => setCookTime(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
 
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Servings"
-                placeholder="e.g., 4"
-                value={servings}
-                onChange={(e) => setServings(e.target.value)}
-                InputProps={{
-                  startAdornment: <Users size={16} style={{ marginRight: 6 }} />,
-                }}
-              />
-            </Grid>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Servings
+                </label>
+                <div className="relative">
+                  <Users size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="e.g., 4"
+                    value={servings}
+                    onChange={(e) => setServings(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Notes (optional)"
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Notes (optional)
+              </label>
+              <textarea
                 placeholder="Any special notes or reminders"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
               />
-            </Grid>
-          </Grid>
-        </Box>
-      </DialogContent>
+            </div>
+          </form>
+        </div>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          sx={{
-            backgroundColor: 'green',
-            '&:hover': { backgroundColor: 'darkgreen' },
-            flex: 1,
-          }}
-          startIcon={<Plus size={18} />}
-        >
-          Add to Plan
-        </Button>
-        <Button onClick={onClose} variant="outlined">
-          Cancel
-        </Button>
-      </DialogActions>
-    </Dialog>
+        <div className="flex gap-3 p-6 border-t border-gray-200">
+          <button
+            onClick={handleSave}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            <Plus size={18} />
+            Add to Plan
+          </button>
+          <button 
+            onClick={onClose}
+            className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
