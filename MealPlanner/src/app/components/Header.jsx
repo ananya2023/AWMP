@@ -21,12 +21,13 @@ import {
   Divider,
   Badge,
 } from '@mui/material';
-import { ChefHat, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart } from 'lucide-react';
+import { ChefHat, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw } from 'lucide-react';
 import SavedRecipes from './SavedRecipes';
 import MealPlansView from './MealPlansView';
 import Profile from './MyProfile';
 import Pantry from './Pantry';
-import VoiceRecipeAssistant from './VoiceRecipeAssistant';  
+import VoiceRecipeAssistant from './VoiceRecipeAssistant';
+import SmartSubstitutions from './SmartSubstitutions';  
 
 const Header = () => {
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
@@ -34,6 +35,7 @@ const Header = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showPantry, setShowPantry] = useState(false);
   const [showRecipeSuggestions, setShowRecipeSuggestions] = useState(false);
+  const [showSubstitutions, setShowSubstitutions] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [userData, setUserData] = useState({
@@ -55,6 +57,7 @@ const Header = () => {
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => setShowSavedRecipes(true) },
     { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => setShowMealPlan(true) },
     { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => setShowRecipeSuggestions(true) },
+    { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
     { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => setShowPantry(true) },
   ];
 
@@ -194,6 +197,21 @@ const Header = () => {
         <DialogTitle>Recipe Suggestions</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '80vh' }}>
           <VoiceRecipeAssistant />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog 
+        open={showSubstitutions} 
+        onClose={() => setShowSubstitutions(false)} 
+        maxWidth="sm" 
+        fullWidth
+        TransitionProps={{
+          style: { transition: 'all 0.3s ease-in-out' }
+        }}
+      >
+        <DialogTitle>Smart Recipe Substitutions</DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: '80vh' }}>
+          <SmartSubstitutions />
         </DialogContent>
       </Dialog>
 
