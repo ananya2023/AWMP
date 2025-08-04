@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronDown, Camera, FileText } from 'lucide-react';
 import AddItemDialog from './AddItemDialog';
 import ReceiptScanner from './ReceiptsScanner';
@@ -10,8 +10,63 @@ const Pantry = () => {
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
+  const [pantryItems, setPantryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const pantryItems = [
+  const fetchPantryItems = async () => {
+    try {
+      setLoading(true);
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (!userData?.user_id) {
+        console.error("No user_id found in localStorage.");
+        return;
+      }
+      const items = await getPantryItems(userData.user_id);
+      
+      // Transform API data to match UI format
+      const transformedItems = items.map(item => {
+        const calculateDaysLeft = (expiryDateStr) => {
+          if (!expiryDateStr) return 999;
+          const expiry = new Date(expiryDateStr);
+          const today = new Date();
+          const diffTime = expiry - today;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return diffDays > 0 ? diffDays : 0;
+        };
+        
+        const daysLeft = calculateDaysLeft(item.expiry_date);
+        let status = 'fresh';
+        if (daysLeft === 0) status = 'expired';
+        else if (daysLeft === 1) status = 'expiring-today';
+        else if (daysLeft <= 3) status = 'expiring-soon';
+        else if (daysLeft <= 7) status = 'good';
+        
+        return {
+          id: item.id,
+          name: item.item_name,
+          category: item.categories?.[0]?.toLowerCase() || 'other',
+          quantity: `${item.quantity} ${item.unit}`,
+          expiryDate: item.expiry_date,
+          daysLeft,
+          location: 'Pantry',
+          status,
+          image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=100'
+        };
+      });
+      
+      setPantryItems(transformedItems);
+    } catch (error) {
+      console.error("Failed to fetch pantry items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPantryItems();
+  }, []);
+
+  const mockItems = [
     {
       id: 1,
       name: 'Carrots',
@@ -102,12 +157,14 @@ const Pantry = () => {
     },
   ];
 
+  const displayItems = pantryItems.length > 0 ? pantryItems : mockItems;
+
   const categories = [
-    { id: 'all', label: 'All Items', count: pantryItems.length },
-    { id: 'vegetables', label: 'Vegetables', count: pantryItems.filter(item => item.category === 'vegetables').length },
-    { id: 'fruits', label: 'Fruits', count: pantryItems.filter(item => item.category === 'fruits').length },
-    { id: 'grains', label: 'Grains', count: pantryItems.filter(item => item.category === 'grains').length },
-    { id: 'dairy', label: 'Dairy', count: pantryItems.filter(item => item.category === 'dairy').length },
+    { id: 'all', label: 'All Items', count: displayItems.length },
+    { id: 'vegetables', label: 'Vegetables', count: displayItems.filter(item => item.category === 'vegetables').length },
+    { id: 'fruits', label: 'Fruits', count: displayItems.filter(item => item.category === 'fruits').length },
+    { id: 'grains', label: 'Grains', count: displayItems.filter(item => item.category === 'grains').length },
+    { id: 'dairy', label: 'Dairy', count: displayItems.filter(item => item.category === 'dairy').length },
   ];
 
   const getStatusColor = (status) => {
@@ -134,13 +191,13 @@ const Pantry = () => {
     return null;
   };
 
-  const filteredItems = pantryItems.filter(item => {
+  const filteredItems = displayItems.filter(item => {
     const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const urgentItems = pantryItems.filter(item => 
+  const urgentItems = displayItems.filter(item => 
     item.status === 'expired' || item.status === 'expiring-today' || item.status === 'expiring-soon'
   );
 
@@ -349,7 +406,7 @@ const Pantry = () => {
               <Package className="h-6 w-6 text-emerald-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{pantryItems.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{displayItems.length}</p>
               <p className="text-sm text-gray-600">Total Items</p>
             </div>
           </div>
@@ -374,7 +431,7 @@ const Pantry = () => {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {pantryItems.filter(item => item.status === 'fresh').length}
+                {displayItems.filter(item => item.status === 'fresh').length}
               </p>
               <p className="text-sm text-gray-600">Fresh Items</p>
             </div>
@@ -396,7 +453,10 @@ const Pantry = () => {
 
       <AddItemDialog
         isOpen={showAddDialog}
-        onClose={() => setShowAddDialog(false)}
+        onClose={() => {
+          setShowAddDialog(false);
+          fetchPantryItems();
+        }}
       />
     </div>
   );

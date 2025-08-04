@@ -19,6 +19,7 @@ const Header = () => {
   const [showRecipeSuggestions, setShowRecipeSuggestions] = useState(false);
   const [showSubstitutions, setShowSubstitutions] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const [userData, setUserData] = useState({
     name: 'Ananya Miriyala',
@@ -152,12 +153,47 @@ const Header = () => {
                   3
                 </span>
               </button>
-              <button 
-                onClick={() => setShowProfile(true)}
-                className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg group"
-              >
-                <User className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg group"
+                >
+                  <User className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
+                </button>
+                
+                {showProfileDropdown && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                    <div className="py-2">
+                      <button 
+                        onClick={() => {
+                          setShowProfile(true);
+                          setShowProfileDropdown(false);
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
+                      >
+                        <User className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="font-medium text-gray-900">Your Profile</div>
+                          <div className="text-sm text-gray-500">Manage account settings</div>
+                        </div>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowSubstitutions(true);
+                          setShowProfileDropdown(false);
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
+                      >
+                        <RefreshCw className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <div className="font-medium text-gray-900">Smart Substitutions</div>
+                          <div className="text-sm text-gray-500">Find ingredient alternatives</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <button 
                 onClick={handleDrawerToggle}
                 className="md:hidden p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg"

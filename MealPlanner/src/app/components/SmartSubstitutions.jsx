@@ -12,7 +12,7 @@ const SmartSubstitutions = () => {
   const [loading, setLoading] = useState(false);
 
   // Hardcoded user preferences (will come from user collection in DB)
-  const allergies = [ 'Nuts'];
+  const allergies = [ 'Dairy' , 'Nuts'];
   const dietaryPrefs = ['Vegetarian'];
 
   const getSubstitutions = async () => {
