@@ -98,7 +98,7 @@ VITE_APP_YOUTUBE_API_KEY=your_youtube_api_key
 1. **Start Backend Server**
 ```bash
 cd Backend
-npm start
+npm run dev
 ```
 
 2. **Start Frontend Development Server**
