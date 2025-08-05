@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Lightbulb, Loader2 } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getUserProfile } from '../../api/userApi';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_APP_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
@@ -10,10 +11,32 @@ const SmartSubstitutions = () => {
   const [recipeName, setRecipeName] = useState('');
   const [substitutions, setSubstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [allergies, setAllergies] = useState([]);
+  const [dietaryPrefs, setDietaryPrefs] = useState([]);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Hardcoded user preferences (will come from user collection in DB)
-  const allergies = [ 'Dairy' , 'Nuts'];
-  const dietaryPrefs = ['Vegetarian'];
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      setProfileLoading(true);
+      const userDataFromStorage = JSON.parse(localStorage.getItem('user_data'));
+      if (userDataFromStorage?.user_id) {
+        const response = await getUserProfile(userDataFromStorage.user_id);
+        setAllergies(response.data.allergies || []);
+        setDietaryPrefs(response.data.dietaryPreferences || []);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      // Fallback to empty arrays
+      setAllergies([]);
+      setDietaryPrefs([]);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const getSubstitutions = async () => {
     if (!ingredient.trim()) return;
@@ -93,18 +116,32 @@ const SmartSubstitutions = () => {
             <p className="text-sm text-gray-600 mb-2">
               Your Profile:
             </p>
-            <div className="flex flex-wrap gap-2">
-              {allergies.map((allergy) => (
-                <span key={allergy} className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
-                  Allergic to {allergy}
-                </span>
-              ))}
-              {dietaryPrefs.map((pref) => (
-                <span key={pref} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full">
-                  {pref}
-                </span>
-              ))}
-            </div>
+            {profileLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                <span className="text-sm text-gray-500">Loading preferences...</span>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {allergies.length > 0 ? (
+                  allergies.map((allergy) => (
+                    <span key={allergy} className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">
+                      Allergic to {allergy}
+                    </span>
+                  ))
+                ) : null}
+                {dietaryPrefs.length > 0 ? (
+                  dietaryPrefs.map((pref) => (
+                    <span key={pref} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full">
+                      {pref}
+                    </span>
+                  ))
+                ) : null}
+                {allergies.length === 0 && dietaryPrefs.length === 0 && (
+                  <span className="text-sm text-gray-500">No dietary preferences or allergies set</span>
+                )}
+              </div>
+            )}
           </div>
           
           <button
