@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { Box, Typography, Button, Container } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 
 const NotFound = () => {
@@ -14,33 +13,22 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "grey.100",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-      }}
-    >
-      <Container>
-        <Typography variant="h2" fontWeight="bold" gutterBottom>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center text-center">
+      <div className="max-w-md mx-auto px-4">
+        <h1 className="text-6xl font-bold text-gray-900 mb-4">
           404
-        </Typography>
-        <Typography variant="h6" color="text.secondary" gutterBottom>
+        </h1>
+        <h2 className="text-xl text-gray-600 mb-8">
           Oops! Page not found
-        </Typography>
-        <Button
-          component={RouterLink}
+        </h2>
+        <RouterLink
           to="/"
-          variant="contained"
-          color="primary"
+          className="inline-block px-6 py-3 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
         >
           Return to Home
-        </Button>
-      </Container>
-    </Box>
+        </RouterLink>
+      </div>
+    </div>
   );
 };
 
