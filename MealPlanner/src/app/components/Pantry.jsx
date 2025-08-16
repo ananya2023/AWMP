@@ -1,17 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronDown, Camera, FileText } from 'lucide-react';
 import AddItemDialog from './AddItemDialog';
+import EditItemDialog from './EditItemDialog';
 import ReceiptScanner from './ReceiptsScanner';
-import { getPantryItems } from '../../api/pantryApi';
+import { getPantryItems, deletePantryItem, updatePantryItem } from '../../api/pantryApi';
 
 const Pantry = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleDeleteItem = async (itemId) => {
+    if (!confirm('Are you sure you want to delete this item?')) {
+      return;
+    }
+    
+    try {
+      await deletePantryItem(itemId);
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+      alert('Failed to delete item. Please try again.');
+    }
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateItem = async (itemId, updateData) => {
+    try {
+      await updatePantryItem(itemId, updateData);
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to update item:', error);
+      alert('Failed to update item. Please try again.');
+    }
+  };
 
   const fetchPantryItems = async () => {
     try {
@@ -339,10 +371,22 @@ const Pantry = () => {
                 className="w-full h-32 object-cover"
               />
               <div className="absolute top-2 right-2 flex space-x-1">
-                <button className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-emerald-600 transition-colors duration-200">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditItem(item);
+                  }}
+                  className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-emerald-600 transition-colors duration-200"
+                >
                   <Edit3 className="h-3 w-3" />
                 </button>
-                <button className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-600 transition-colors duration-200">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteItem(item.id);
+                  }}
+                  className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
@@ -457,6 +501,16 @@ const Pantry = () => {
           setShowAddDialog(false);
           fetchPantryItems();
         }}
+      />
+      
+      <EditItemDialog
+        isOpen={showEditDialog}
+        onClose={() => {
+          setShowEditDialog(false);
+          setEditingItem(null);
+        }}
+        item={editingItem}
+        onSave={handleUpdateItem}
       />
     </div>
   );

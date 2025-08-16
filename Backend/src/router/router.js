@@ -46,6 +46,12 @@ router.post('/pantry-items', pantryController.createPantryItems);
 // GET /api/pantry-items?user_id=123 - Get all pantry items for a user
 router.get('/pantry-items', pantryController.getPantryItemsByUserId);
 
+// DELETE /api/pantry-items/:item_id - Delete a pantry item
+router.delete('/pantry-items/:item_id', pantryController.deletePantryItem);
+
+// PUT /api/pantry-items/:item_id - Update a pantry item
+router.put('/pantry-items/:item_id', pantryController.updatePantryItem);
+
 router.post('/send-expiry-notification', notificationController.sendExpiryNotification);
 
 
