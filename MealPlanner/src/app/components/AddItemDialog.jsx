@@ -3,13 +3,20 @@ import { Plus, Calendar, ImagePlus, X } from 'lucide-react';
 import { addPantryItems } from '../../api/pantryApi';
 
 const CATEGORIES = [
-  'Proteins', 'Dairy', 'Vegetables', 'Grains',
-  'Canned Goods', 'Spices', 'Condiments', 'Gluten'
+  { id: 'Proteins', label: 'Proteins', emoji: '🥩', image: 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Dairy', label: 'Dairy', emoji: '🥛', image: 'https://images.pexels.com/photos/236010/pexels-photo-236010.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Vegetables', label: 'Vegetables', emoji: '🥕', image: 'https://images.pexels.com/photos/143133/pexels-photo-143133.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Fruits', label: 'Fruits', emoji: '🍎', image: 'https://images.pexels.com/photos/1132047/pexels-photo-1132047.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Grains', label: 'Grains', emoji: '🌾', image: 'https://images.pexels.com/photos/209206/pexels-photo-209206.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Canned Goods', label: 'Canned Goods', emoji: '🥫', image: 'https://images.pexels.com/photos/4110256/pexels-photo-4110256.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Spices', label: 'Spices', emoji: '🌶️', image: 'https://images.pexels.com/photos/277253/pexels-photo-277253.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Condiments', label: 'Condiments', emoji: '🍯', image: 'https://images.pexels.com/photos/1435735/pexels-photo-1435735.jpeg?auto=compress&cs=tinysrgb&w=150' },
+  { id: 'Gluten', label: 'Gluten', emoji: '🍞', image: 'https://images.pexels.com/photos/209206/pexels-photo-209206.jpeg?auto=compress&cs=tinysrgb&w=150' }
 ];
 
 const UNITS = ['grams', 'ml', 'pieces','Dozen'];
 
-const AddItemDialog = ({ isOpen, onClose }) => {
+const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
   const [itemName, setItemName] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
@@ -53,17 +60,18 @@ const AddItemDialog = ({ isOpen, onClose }) => {
       setNotes('');
       setImageUrl('');
 
-      onClose();
+      if (onItemsAdded) onItemsAdded();
+      if (!embedded) onClose();
     } catch (err) {
       alert('Failed to add item. Please try again.');
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen && !embedded) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+  const dialogContent = (
+    <>
+      {!embedded && (
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-2">
             <Plus size={20} className="text-emerald-600" />
@@ -76,6 +84,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
             <X className="h-5 w-5" />
           </button>
         </div>
+      )}
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           <div className="space-y-4">
@@ -121,36 +130,51 @@ const AddItemDialog = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Categories *
               </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {categories.map((cat) => (
-                  <span key={cat} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full flex items-center gap-1">
-                    {cat}
-                    <button 
-                      onClick={() => setCategories(categories.filter(c => c !== cat))}
-                      className="text-emerald-600 hover:text-emerald-800"
-                    >
-                      <X size={14} />
-                    </button>
-                  </span>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      if (categories.includes(cat.id)) {
+                        setCategories(categories.filter(c => c !== cat.id));
+                      } else {
+                        setCategories([...categories, cat.id]);
+                      }
+                    }}
+                    className={`p-3 rounded-xl transition-all duration-200 text-center border-2 ${
+                      categories.includes(cat.id)
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-emerald-300 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{cat.emoji}</div>
+                    <div className="text-xs font-medium">{cat.label}</div>
+                  </button>
                 ))}
               </div>
-              <select 
-                onChange={(e) => {
-                  if (e.target.value && !categories.includes(e.target.value)) {
-                    setCategories([...categories, e.target.value]);
-                  }
-                  e.target.value = '';
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="">Select categories...</option>
-                {CATEGORIES.filter(cat => !categories.includes(cat)).map(cat => (
-                  <option key={cat} value={cat}>{cat}</option>
-                ))}
-              </select>
+              {categories.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((catId) => {
+                    const cat = CATEGORIES.find(c => c.id === catId);
+                    return (
+                      <span key={catId} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full flex items-center gap-1">
+                        {cat?.emoji} {cat?.label}
+                        <button 
+                          type="button"
+                          onClick={() => setCategories(categories.filter(c => c !== catId))}
+                          className="text-emerald-600 hover:text-emerald-800"
+                        >
+                          <X size={14} />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div>
@@ -200,7 +224,7 @@ const AddItemDialog = ({ isOpen, onClose }) => {
         <div className="flex gap-3 p-6 border-t border-gray-200">
           <button 
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
@@ -212,6 +236,17 @@ const AddItemDialog = ({ isOpen, onClose }) => {
             Add to Inventory
           </button>
         </div>
+    </>
+  );
+
+  if (embedded) {
+    return dialogContent;
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+        {dialogContent}
       </div>
     </div>
   );

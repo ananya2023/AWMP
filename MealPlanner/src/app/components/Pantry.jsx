@@ -3,13 +3,14 @@ import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronD
 import AddItemDialog from './AddItemDialog';
 import EditItemDialog from './EditItemDialog';
 import UpdateStatusDialog from './UpdateStatusDialog';
+import UnifiedAddItemDialog from './UnifiedAddItemDialog';
 import ReceiptScanner from './ReceiptsScanner';
 import { getPantryItems, deletePantryItem, updatePantryItem } from '../../api/pantryApi';
 
 const Pantry = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [showUnifiedDialog, setShowUnifiedDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -302,49 +303,13 @@ const Pantry = () => {
           <h2 className="text-2xl font-bold text-gray-900">Pantry</h2>
           <p className="text-gray-600">Track your ingredients and prevent waste</p>
         </div>
-        <div className="relative">
-          <button 
-            onClick={() => setShowAddDropdown(!showAddDropdown)}
-            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Item</span>
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          
-          {showAddDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-              <div className="py-2">
-                <button 
-                  onClick={() => {
-                    setShowAddDialog(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
-                >
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-gray-900">Manual Entry</div>
-                    <div className="text-sm text-gray-500">Add items one by one</div>
-                  </div>
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowReceiptScanner(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
-                >
-                  <Camera className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-gray-900">Scan Receipt</div>
-                    <div className="text-sm text-gray-500">Upload grocery receipt</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <button 
+          onClick={() => setShowUnifiedDialog(true)}
+          className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Item</span>
+        </button>
       </div>
 
       {/* Urgent Items Alert */}
@@ -569,6 +534,15 @@ const Pantry = () => {
         }}
         item={statusItem}
         onUpdate={handleUpdateStatus}
+      />
+      
+      <UnifiedAddItemDialog
+        isOpen={showUnifiedDialog}
+        onClose={() => setShowUnifiedDialog(false)}
+        onItemsAdded={() => {
+          setShowUnifiedDialog(false);
+          fetchPantryItems();
+        }}
       />
     </div>
   );
