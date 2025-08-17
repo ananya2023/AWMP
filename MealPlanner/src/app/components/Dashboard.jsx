@@ -1,5 +1,7 @@
 import React from 'react';
 import { Leaf, Calendar, Lightbulb, Package, TrendingDown, Clock, Star, Sparkles, ArrowRight } from 'lucide-react';
+import Lottie from 'lottie-react';
+import FoodGirlAnimation from '../../assets/FoodGirl.json';
 
 const Dashboard = ({ onNavigate }) => {
   const stats = [
@@ -56,19 +58,28 @@ const Dashboard = ({ onNavigate }) => {
       <div className="mb-8 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 relative overflow-hidden rounded-3xl border border-emerald-200 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/15 group">
         <div className="welcome-bg-1 absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-emerald-500/10 to-transparent rounded-full transform translate-x-16 -translate-y-16 transition-transform duration-700 group-hover:translate-x-14 group-hover:-translate-y-14 group-hover:scale-150"></div>
         <div className="welcome-bg-2 absolute bottom-0 left-0 w-24 h-24 bg-gradient-radial from-emerald-600/8 to-transparent rounded-full transform -translate-x-12 translate-y-12 transition-transform duration-700 group-hover:-translate-x-10 group-hover:translate-y-10 group-hover:scale-125"></div>
-        <div className="p-12 relative z-10 max-w-4xl">
-          <h1 className="text-4xl font-bold mb-6 text-gray-900 whitespace-nowrap">
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce">Welcome</span>{' '}
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce">back</span>{' '}
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce">to</span>{' '}
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce">your</span>{' '}
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce text-emerald-600">sustainable</span>{' '}
-            <span className="inline-block transition-transform duration-300 hover:animate-bounce">kitchen!</span>{' '}
-            <span className="text-4xl animate-pulse">🌱</span>
-          </h1>
-          <p className="text-xl text-gray-600 leading-relaxed font-normal">
-            You're making a real difference. Every meal planned is a step toward reducing food waste and creating a more sustainable future. Let's plan something delicious today!
-          </p>
+        <div className="flex items-center p-12 relative z-10">
+          <div className="flex-1 max-w-4xl">
+            <h1 className="text-4xl font-bold mb-6 text-gray-900 whitespace-nowrap">
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce">Welcome</span>{' '}
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce">back</span>{' '}
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce">to</span>{' '}
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce">your</span>{' '}
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce text-emerald-600">sustainable</span>{' '}
+              <span className="inline-block transition-transform duration-300 hover:animate-bounce">kitchen!</span>{' '}
+              <span className="text-4xl animate-pulse">🌱</span>
+            </h1>
+            <p className="text-xl text-gray-600 leading-relaxed font-normal">
+              You're making a real difference. Every meal planned is a step toward reducing food waste and creating a more sustainable future. Let's plan something delicious today!
+            </p>
+          </div>
+          <div className="ml-8">
+            <Lottie 
+              animationData={FoodGirlAnimation}
+              style={{ width: 200, height: 200 }}
+              loop
+            />
+          </div>
         </div>
       </div>
 

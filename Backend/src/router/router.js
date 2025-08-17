@@ -24,6 +24,9 @@ const upload = multer({ storage: storage });
 
 // USER ROUTES
 
+// Get Profile Route
+router.get('/profile/:user_id', profileController.getProfile);
+
 // Update Profile Route
 router.put('/update-profile', profileController.updateProfile);
 

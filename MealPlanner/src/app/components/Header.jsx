@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import SavedRecipes from './SavedRecipes';
 import MealPlansView from './MealPlansView';
 import Profile from './MyProfile';
+import ProfileView from './ProfileView';
 import Pantry from './Pantry';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import SmartSubstitutions from './SmartSubstitutions';
@@ -11,10 +12,25 @@ import Dashboard from './Dashboard';
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/dashboard' || path === '/') {
+      setActiveTab('dashboard');
+    } else if (path === '/recipes') {
+      setActiveTab('recipes');
+    } else if (path === '/suggestions') {
+      setActiveTab('suggestions');
+    } else if (path === '/pantry') {
+      setActiveTab('pantry');
+    }
+  }, [location.pathname]);
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
   const [showMealPlan, setShowMealPlan] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showProfileView, setShowProfileView] = useState(false);
   const [showPantry, setShowPantry] = useState(false);
   const [showRecipeSuggestions, setShowRecipeSuggestions] = useState(false);
   const [showSubstitutions, setShowSubstitutions] = useState(false);
@@ -36,11 +52,11 @@ const Header = () => {
   };
 
   const menuItems = [
-    { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => navigate('/recipes') },
+    { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
     { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => setShowMealPlan(true) },
-    { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => navigate('/suggestions') },
+    { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => { navigate('/suggestions'); setActiveTab('suggestions'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
-    { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => navigate('/pantry') },
+    { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => { navigate('/pantry'); setActiveTab('pantry'); } },
   ];
 
   const handleDrawerToggle = () => {
@@ -56,15 +72,18 @@ const Header = () => {
     switch(view) {
       case 'savedRecipes':
         navigate('/recipes');
+        setActiveTab('recipes');
         break;
       case 'mealPlans':
         setShowMealPlan(true);
         break;
       case 'recipeSuggestions':
         navigate('/suggestions');
+        setActiveTab('suggestions');
         break;
       case 'pantry':
         navigate('/pantry');
+        setActiveTab('pantry');
         break;
       default:
         break;
@@ -166,7 +185,7 @@ const Header = () => {
                     <div className="py-2">
                       <button 
                         onClick={() => {
-                          setShowProfile(true);
+                          setShowProfileView(true);
                           setShowProfileDropdown(false);
                         }}
                         className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
@@ -334,7 +353,7 @@ const Header = () => {
 
       {/* Smart Substitutions Modal */}
       {showSubstitutions && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">Smart Recipe Substitutions</h2>
@@ -352,6 +371,17 @@ const Header = () => {
         </div>
       )}
 
+      <ProfileView
+        isOpen={showProfileView}
+        onClose={() => setShowProfileView(false)}
+        userData={userData}
+        onEdit={(profileData) => {
+          setUserData(profileData);
+          setShowProfileView(false);
+          setShowProfile(true);
+        }}
+      />
+      
       <Profile
         isOpen={showProfile}
         onClose={() => setShowProfile(false)}

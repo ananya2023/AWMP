@@ -15,6 +15,15 @@ export const createUser = async (itemData) => {
 };
 
 
+export const getUserProfile = async (user_id) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/profile/${user_id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Failed to get profile');
+  }
+};
+
 export const updateUserProfile = async (profileData) => {
   try {
     console.log(profileData, "pe");
