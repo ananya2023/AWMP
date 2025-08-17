@@ -55,4 +55,24 @@ export const getScannedItems = async (formData) => {
   }
 };
 
+export const deletePantryItem = async (itemId) => {
+  try {
+    const response = await axios.delete(`${BASE_URL}/pantry-items/${itemId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting pantry item:', error);
+    throw error;
+  }
+};
+
+export const updatePantryItem = async (itemId, itemData) => {
+  try {
+    const response = await axios.put(`${BASE_URL}/pantry-items/${itemId}`, itemData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating pantry item:', error);
+    throw error;
+  }
+};
+
 

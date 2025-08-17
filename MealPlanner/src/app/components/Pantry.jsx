@@ -1,17 +1,95 @@
 import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronDown, Camera, FileText } from 'lucide-react';
 import AddItemDialog from './AddItemDialog';
+import EditItemDialog from './EditItemDialog';
+import UpdateStatusDialog from './UpdateStatusDialog';
+import UnifiedAddItemDialog from './UnifiedAddItemDialog';
 import ReceiptScanner from './ReceiptsScanner';
-import { getPantryItems } from '../../api/pantryApi';
+import { getPantryItems, deletePantryItem, updatePantryItem } from '../../api/pantryApi';
 
 const Pantry = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [showUnifiedDialog, setShowUnifiedDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [statusItem, setStatusItem] = useState(null);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleDeleteItem = async (itemId) => {
+    if (!confirm('Are you sure you want to delete this item?')) {
+      return;
+    }
+    
+    try {
+      await deletePantryItem(itemId);
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+      alert('Failed to delete item. Please try again.');
+    }
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateItem = async (itemId, updateData) => {
+    try {
+      await updatePantryItem(itemId, updateData);
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to update item:', error);
+      alert('Failed to update item. Please try again.');
+    }
+  };
+
+  const handleStatusUpdate = (item) => {
+    setStatusItem(item);
+    setShowStatusDialog(true);
+  };
+
+  const handleUpdateStatus = async (itemId, updateData) => {
+    try {
+      if (updateData.consumed) {
+        await deletePantryItem(itemId);
+      } else {
+        // For partial consumption, we need to recalculate status
+        if (updateData.quantity !== undefined) {
+          const item = displayItems.find(i => i.id === itemId);
+          if (item) {
+            const calculateDaysLeft = (expiryDateStr) => {
+              if (!expiryDateStr) return 999;
+              const expiry = new Date(expiryDateStr);
+              const today = new Date();
+              const diffTime = expiry - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return diffDays > 0 ? diffDays : 0;
+            };
+            
+            const daysLeft = calculateDaysLeft(item.expiryDate);
+            let status = 'fresh';
+            if (daysLeft === 0) status = 'expired';
+            else if (daysLeft === 1) status = 'expiring-today';
+            else if (daysLeft <= 3) status = 'expiring-soon';
+            else if (daysLeft <= 7) status = 'good';
+            
+            updateData.status = status;
+          }
+        }
+        await updatePantryItem(itemId, updateData);
+      }
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('Failed to update status. Please try again.');
+    }
+  };
 
   const fetchPantryItems = async () => {
     try {
@@ -225,49 +303,13 @@ const Pantry = () => {
           <h2 className="text-2xl font-bold text-gray-900">Pantry</h2>
           <p className="text-gray-600">Track your ingredients and prevent waste</p>
         </div>
-        <div className="relative">
-          <button 
-            onClick={() => setShowAddDropdown(!showAddDropdown)}
-            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Item</span>
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          
-          {showAddDropdown && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-              <div className="py-2">
-                <button 
-                  onClick={() => {
-                    setShowAddDialog(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
-                >
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-gray-900">Manual Entry</div>
-                    <div className="text-sm text-gray-500">Add items one by one</div>
-                  </div>
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowReceiptScanner(true);
-                    setShowAddDropdown(false);
-                  }}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
-                >
-                  <Camera className="h-4 w-4 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-gray-900">Scan Receipt</div>
-                    <div className="text-sm text-gray-500">Upload grocery receipt</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <button 
+          onClick={() => setShowUnifiedDialog(true)}
+          className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Item</span>
+        </button>
       </div>
 
       {/* Urgent Items Alert */}
@@ -339,10 +381,22 @@ const Pantry = () => {
                 className="w-full h-32 object-cover"
               />
               <div className="absolute top-2 right-2 flex space-x-1">
-                <button className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-emerald-600 transition-colors duration-200">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditItem(item);
+                  }}
+                  className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-emerald-600 transition-colors duration-200"
+                >
                   <Edit3 className="h-3 w-3" />
                 </button>
-                <button className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-600 transition-colors duration-200">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteItem(item.id);
+                  }}
+                  className="p-1 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-600 transition-colors duration-200"
+                >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
@@ -389,7 +443,10 @@ const Pantry = () => {
                     Find Recipes
                   </button>
                 )}
-                <button className="w-full px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <button 
+                  onClick={() => handleStatusUpdate(item)}
+                  className="w-full px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
                   Update Status
                 </button>
               </div>
@@ -455,6 +512,35 @@ const Pantry = () => {
         isOpen={showAddDialog}
         onClose={() => {
           setShowAddDialog(false);
+          fetchPantryItems();
+        }}
+      />
+      
+      <EditItemDialog
+        isOpen={showEditDialog}
+        onClose={() => {
+          setShowEditDialog(false);
+          setEditingItem(null);
+        }}
+        item={editingItem}
+        onSave={handleUpdateItem}
+      />
+      
+      <UpdateStatusDialog
+        isOpen={showStatusDialog}
+        onClose={() => {
+          setShowStatusDialog(false);
+          setStatusItem(null);
+        }}
+        item={statusItem}
+        onUpdate={handleUpdateStatus}
+      />
+      
+      <UnifiedAddItemDialog
+        isOpen={showUnifiedDialog}
+        onClose={() => setShowUnifiedDialog(false)}
+        onItemsAdded={() => {
+          setShowUnifiedDialog(false);
           fetchPantryItems();
         }}
       />

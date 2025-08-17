@@ -151,3 +151,40 @@ exports.getPantryItemsByUserId = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.deletePantryItem = async (req, res) => {
+  try {
+    const { item_id } = req.params;
+    if (!item_id) {
+      return res.status(400).json({ message: 'item_id is required' });
+    }
+    
+    await pantryService.deletePantryItem(item_id);
+    res.status(200).json({
+      message: 'Pantry item deleted successfully'
+    });
+  } catch (error) {
+    console.error("Error in deletePantryItem:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updatePantryItem = async (req, res) => {
+  try {
+    const { item_id } = req.params;
+    const updateData = req.body;
+    
+    if (!item_id) {
+      return res.status(400).json({ message: 'item_id is required' });
+    }
+    
+    const updatedItem = await pantryService.updatePantryItem(item_id, updateData);
+    res.status(200).json({
+      message: 'Pantry item updated successfully',
+      data: updatedItem
+    });
+  } catch (error) {
+    console.error("Error in updatePantryItem:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

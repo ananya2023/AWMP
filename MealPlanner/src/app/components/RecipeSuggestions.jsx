@@ -24,13 +24,47 @@ const RecipeSuggestions = () => {
 
   const loadCategories = async () => {
     const categoryList = [
-      { id: 'pantry-based', label: 'Based on Your Pantry', icon: ChefHat },
-      { id: 'quick', label: 'Quick Saves (<15 min)', icon: Zap },
-      { id: 'trending', label: 'Trending Now', icon: Lightbulb },
-      { id: 'seasonal', label: 'Seasonal Specials', icon: RefreshCw },
-      { id: 'innovative', label: 'Innovative Ideas', icon: Lightbulb },
+      { 
+        id: 'pantry-based', 
+        label: 'Your Pantry', 
+        emoji: '🥬'
+      },
+      { 
+        id: 'quick', 
+        label: 'Quick Saves', 
+        emoji: '⚡'
+      },
+      { 
+        id: 'trending', 
+        label: 'Trending Now', 
+        emoji: '🔥'
+      },
+      { 
+        id: 'seasonal', 
+        label: 'Seasonal', 
+        emoji: '🌿'
+      },
+      { 
+        id: 'innovative', 
+        label: 'Innovative', 
+        emoji: '💡'
+      },
     ];
+    console.log('Categories loaded:', categoryList);
     setCategories(categoryList);
+  };
+
+  const getSeasonalQuery = () => {
+    const month = new Date().getMonth() + 1; // 1-12
+    if (month >= 3 && month <= 5) {
+      return 'indian spring curry dal fresh vegetables';
+    } else if (month >= 6 && month <= 8) {
+      return 'indian summer mango lassi raita cooling';
+    } else if (month >= 9 && month <= 11) {
+      return 'indian autumn biryani pulao festival sweets';
+    } else {
+      return 'indian winter warm curry soup comfort food';
+    }
   };
 
   const loadRecipes = async () => {
@@ -42,13 +76,13 @@ const RecipeSuggestions = () => {
           data = await getRecipesByIngredients('tomato,onion,garlic', 12);
           break;
         case 'quick':
-          data = await getRecipesByType('main course', 12);
+          data = await searchRecipes('quick easy', 12, 20);
           break;
         case 'trending':
           data = await getRandomRecipes(12);
           break;
         case 'seasonal':
-          data = await getRecipesByType('dessert', 12);
+          data = await searchRecipes(getSeasonalQuery(), 12);
           break;
         case 'innovative':
           data = await getRecipesByType('appetizer', 12);
@@ -151,22 +185,26 @@ const RecipeSuggestions = () => {
           </div>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((category) => (
+        {/* Category Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {categories.length > 0 ? categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+              className={`p-4 rounded-2xl transition-all duration-300 text-center ${
                 selectedCategory === category.id
-                  ? 'bg-emerald-500 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  ? 'bg-emerald-500 text-white shadow-lg scale-105'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:shadow-md hover:scale-102'
               }`}
             >
-              <category.icon className="h-4 w-4" />
-              <span>{category.label}</span>
+              <div className="text-3xl mb-2">{category.emoji}</div>
+              <div className="font-medium text-sm">{category.label}</div>
             </button>
-          ))}
+          )) : (
+            <div className="col-span-full text-center py-4">
+              <p className="text-gray-500">Loading categories...</p>
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}

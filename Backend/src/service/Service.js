@@ -333,3 +333,53 @@ exports.getPantryItemsByUserId = async (user_id, daysUntilExpiry = null) => {
     throw new Error(`Error getting pantry items: ${error.message}`);
   }
 };
+
+exports.deletePantryItem = async (item_id) => {
+  try {
+    console.log("Deleting pantry item:", item_id);
+    
+    const itemRef = db.collection('items').doc(item_id);
+    const itemDoc = await itemRef.get();
+    
+    if (!itemDoc.exists) {
+      throw new Error('Pantry item not found');
+    }
+    
+    await itemRef.delete();
+    console.log("Pantry item deleted successfully:", item_id);
+    
+  } catch (error) {
+    console.error("Error deleting pantry item:", error);
+    throw new Error(`Error deleting pantry item: ${error.message}`);
+  }
+};
+
+exports.updatePantryItem = async (item_id, updateData) => {
+  try {
+    console.log("Updating pantry item:", item_id, updateData);
+    
+    const itemRef = db.collection('items').doc(item_id);
+    const itemDoc = await itemRef.get();
+    
+    if (!itemDoc.exists) {
+      throw new Error('Pantry item not found');
+    }
+    
+    const updatedData = {
+      ...updateData,
+      last_modified: new Date()
+    };
+    
+    await itemRef.update(updatedData);
+    
+    const updatedDoc = await itemRef.get();
+    const result = updatedDoc.data();
+    
+    console.log("Pantry item updated successfully:", item_id);
+    return { id: item_id, ...result };
+    
+  } catch (error) {
+    console.error("Error updating pantry item:", error);
+    throw new Error(`Error updating pantry item: ${error.message}`);
+  }
+};
