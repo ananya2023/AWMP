@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronDown, Camera, FileText } from 'lucide-react';
 import AddItemDialog from './AddItemDialog';
 import EditItemDialog from './EditItemDialog';
+import UpdateStatusDialog from './UpdateStatusDialog';
 import ReceiptScanner from './ReceiptsScanner';
 import { getPantryItems, deletePantryItem, updatePantryItem } from '../../api/pantryApi';
 
@@ -12,6 +13,8 @@ const Pantry = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [statusItem, setStatusItem] = useState(null);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,48 @@ const Pantry = () => {
     } catch (error) {
       console.error('Failed to update item:', error);
       alert('Failed to update item. Please try again.');
+    }
+  };
+
+  const handleStatusUpdate = (item) => {
+    setStatusItem(item);
+    setShowStatusDialog(true);
+  };
+
+  const handleUpdateStatus = async (itemId, updateData) => {
+    try {
+      if (updateData.consumed) {
+        await deletePantryItem(itemId);
+      } else {
+        // For partial consumption, we need to recalculate status
+        if (updateData.quantity !== undefined) {
+          const item = displayItems.find(i => i.id === itemId);
+          if (item) {
+            const calculateDaysLeft = (expiryDateStr) => {
+              if (!expiryDateStr) return 999;
+              const expiry = new Date(expiryDateStr);
+              const today = new Date();
+              const diffTime = expiry - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return diffDays > 0 ? diffDays : 0;
+            };
+            
+            const daysLeft = calculateDaysLeft(item.expiryDate);
+            let status = 'fresh';
+            if (daysLeft === 0) status = 'expired';
+            else if (daysLeft === 1) status = 'expiring-today';
+            else if (daysLeft <= 3) status = 'expiring-soon';
+            else if (daysLeft <= 7) status = 'good';
+            
+            updateData.status = status;
+          }
+        }
+        await updatePantryItem(itemId, updateData);
+      }
+      fetchPantryItems();
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      alert('Failed to update status. Please try again.');
     }
   };
 
@@ -433,7 +478,10 @@ const Pantry = () => {
                     Find Recipes
                   </button>
                 )}
-                <button className="w-full px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <button 
+                  onClick={() => handleStatusUpdate(item)}
+                  className="w-full px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
                   Update Status
                 </button>
               </div>
@@ -511,6 +559,16 @@ const Pantry = () => {
         }}
         item={editingItem}
         onSave={handleUpdateItem}
+      />
+      
+      <UpdateStatusDialog
+        isOpen={showStatusDialog}
+        onClose={() => {
+          setShowStatusDialog(false);
+          setStatusItem(null);
+        }}
+        item={statusItem}
+        onUpdate={handleUpdateStatus}
       />
     </div>
   );

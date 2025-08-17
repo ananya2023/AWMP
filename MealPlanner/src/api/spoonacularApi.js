@@ -14,11 +14,13 @@ export const getRandomRecipes = async (number = 12) => {
   }
 };
 
-export const searchRecipes = async (query, number = 12) => {
+export const searchRecipes = async (query, number = 12, maxReadyTime = null) => {
   try {
-    const response = await fetch(
-      `${BASE_URL}/complexSearch?apiKey=${SPOONACULAR_API_KEY}&query=${query}&number=${number}&addRecipeInformation=true`
-    );
+    let url = `${BASE_URL}/complexSearch?apiKey=${SPOONACULAR_API_KEY}&query=${query}&number=${number}&addRecipeInformation=true`;
+    if (maxReadyTime) {
+      url += `&maxReadyTime=${maxReadyTime}`;
+    }
+    const response = await fetch(url);
     const data = await response.json();
     return data.results;
   } catch (error) {
@@ -53,11 +55,13 @@ export const getRecipeDetails = async (id) => {
   }
 };
 
-export const getRecipesByType = async (type, number = 12) => {
+export const getRecipesByType = async (type, number = 12, maxReadyTime = null) => {
   try {
-    const response = await fetch(
-      `${BASE_URL}/complexSearch?apiKey=${SPOONACULAR_API_KEY}&type=${type}&number=${number}&addRecipeInformation=true`
-    );
+    let url = `${BASE_URL}/complexSearch?apiKey=${SPOONACULAR_API_KEY}&type=${type}&number=${number}&addRecipeInformation=true`;
+    if (maxReadyTime) {
+      url += `&maxReadyTime=${maxReadyTime}`;
+    }
+    const response = await fetch(url);
     const data = await response.json();
     return data.results;
   } catch (error) {

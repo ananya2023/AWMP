@@ -33,6 +33,19 @@ const RecipeSuggestions = () => {
     setCategories(categoryList);
   };
 
+  const getSeasonalQuery = () => {
+    const month = new Date().getMonth() + 1; // 1-12
+    if (month >= 3 && month <= 5) {
+      return 'indian spring curry dal fresh vegetables';
+    } else if (month >= 6 && month <= 8) {
+      return 'indian summer mango lassi raita cooling';
+    } else if (month >= 9 && month <= 11) {
+      return 'indian autumn biryani pulao festival sweets';
+    } else {
+      return 'indian winter warm curry soup comfort food';
+    }
+  };
+
   const loadRecipes = async () => {
     setLoading(true);
     try {
@@ -42,13 +55,13 @@ const RecipeSuggestions = () => {
           data = await getRecipesByIngredients('tomato,onion,garlic', 12);
           break;
         case 'quick':
-          data = await getRecipesByType('main course', 12);
+          data = await searchRecipes('quick easy', 12, 20);
           break;
         case 'trending':
           data = await getRandomRecipes(12);
           break;
         case 'seasonal':
-          data = await getRecipesByType('dessert', 12);
+          data = await searchRecipes(getSeasonalQuery(), 12);
           break;
         case 'innovative':
           data = await getRecipesByType('appetizer', 12);
