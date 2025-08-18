@@ -1,0 +1,36 @@
+# Stage 1: Build the React application
+# We use a Node.js base image to install dependencies and build the app.
+FROM node:20-slim as builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json to the container
+# We do this separately to leverage Docker's layer caching
+# If only the source code changes, this step and the npm install won't be re-run
+COPY package.json package-lock.json ./
+
+# Install dependencies, using npm ci for cleaner builds
+RUN npm ci
+
+# Copy the rest of the application source code
+COPY . .
+
+# Build the React application for production
+# This command creates the 'dist' folder with the optimized static files
+# Note: Vite uses 'dist' by default, not 'build' like Create React App
+RUN npm run build
+
+# Stage 2: Serve the application with a lightweight web server (Nginx)
+# We use a very small Nginx image for the final container
+FROM nginx:alpine
+
+# Copy the built files from the 'builder' stage into the Nginx public folder
+# The 'dist' directory contains the production-ready static assets
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose port 80 to allow external access to the Nginx server
+EXPOSE 80
+
+# The default Nginx command will run, serving the files from the copied directory
+CMD ["nginx", "-g", "daemon off;"]
