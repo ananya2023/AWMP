@@ -18,4 +18,4 @@ EXPOSE 5173
 
 # The command to start the development server
 # This is not suitable for production and will not work correctly
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
