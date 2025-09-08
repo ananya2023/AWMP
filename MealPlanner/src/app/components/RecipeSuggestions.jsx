@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Lightbulb, Clock, Users, Zap, RefreshCw, Heart, ChefHat, Loader2, Search, X } from 'lucide-react';
 import Header from './Header';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
+import RecipeDetailModal from './RecipeDetailModal';
+import { getAuth } from 'firebase/auth';
 import { getRandomRecipes, searchRecipes, getRecipesByIngredients, getRecipeDetails, getRecipesByType } from '../../api/spoonacularApi';
+import { saveRecipe } from '../../api/savedRecipesApi';
 
 const RecipeSuggestions = () => {
   const [recipes, setRecipes] = useState([]);
@@ -33,16 +36,6 @@ const RecipeSuggestions = () => {
         id: 'quick', 
         label: 'Quick Saves', 
         emoji: '⚡'
-      },
-      { 
-        id: 'trending', 
-        label: 'Trending Now', 
-        emoji: '🔥'
-      },
-      { 
-        id: 'seasonal', 
-        label: 'Seasonal', 
-        emoji: '🌿'
       },
       { 
         id: 'innovative', 
@@ -77,12 +70,6 @@ const RecipeSuggestions = () => {
           break;
         case 'quick':
           data = await searchRecipes('quick easy', 12, 20);
-          break;
-        case 'trending':
-          data = await getRandomRecipes(12);
-          break;
-        case 'seasonal':
-          data = await searchRecipes(getSeasonalQuery(), 12);
           break;
         case 'innovative':
           data = await getRecipesByType('appetizer', 12);
@@ -128,11 +115,15 @@ const RecipeSuggestions = () => {
 
   const handleRecipeClick = async (recipe) => {
     try {
+      console.log('Recipe clicked:', recipe);
+      setSelectedRecipe(recipe);
+      setShowModal(true);
       const details = await getRecipeDetails(recipe.id);
       setSelectedRecipe(details);
-      setShowModal(true);
     } catch (error) {
       console.error('Error loading recipe details:', error);
+      setSelectedRecipe(recipe);
+      setShowModal(true);
     }
   };
 
@@ -140,6 +131,26 @@ const RecipeSuggestions = () => {
     return recipe.extendedIngredients?.map(ing => 
       `${ing.amount} ${ing.unit} ${ing.name}`
     ) || [];
+  };
+
+  const handleSaveRecipe = async (recipe, e) => {
+    e.stopPropagation();
+    try {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (!userData?.user_id) {
+        alert('Please log in to save recipes');
+        return;
+      }
+
+      await saveRecipe(userData.user_id, recipe);
+      alert('Recipe saved successfully!');
+    } catch (error) {
+      if (error.message.includes('already saved')) {
+        alert('Recipe is already in your saved recipes!');
+      } else {
+        alert('Failed to save recipe. Please try again.');
+      }
+    }
   };
 
   return (
@@ -243,7 +254,8 @@ const RecipeSuggestions = () => {
             {recipes.map((recipe) => (
               <div
                 key={recipe.id}
-                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
+                onClick={() => handleRecipeClick(recipe)}
+                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer"
               >
                 {/* Image */}
                 <div className="relative overflow-hidden">
@@ -253,7 +265,26 @@ const RecipeSuggestions = () => {
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute top-3 right-3 flex space-x-2">
-                    <button className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-500 transition-colors duration-200">
+                    <button 
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const auth = getAuth();
+                          const user = auth.currentUser;
+                          if (!user) {
+                            alert('Please login to save recipes');
+                            return;
+                          }
+                          const details = await getRecipeDetails(recipe.id);
+                          await saveRecipe(user.uid, details);
+                          alert('Recipe saved successfully!');
+                        } catch (error) {
+                          console.error('Error saving recipe:', error);
+                          alert('Failed to save recipe');
+                        }
+                      }}
+                      className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-500 transition-colors duration-200"
+                    >
                       <Heart className="h-4 w-4" />
                     </button>
                   </div>
@@ -310,13 +341,10 @@ const RecipeSuggestions = () => {
                       }}
                       className="flex-1 px-3 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors duration-200"
                     >
-                      Try Recipe
+                      View Recipe
                     </button>
                     <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add save recipe functionality here
-                      }}
+                      onClick={(e) => handleSaveRecipe(recipe, e)}
                       className="p-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 hover:text-red-500 transition-colors duration-200"
                     >
                       <Heart className="h-4 w-4" />
@@ -328,73 +356,11 @@ const RecipeSuggestions = () => {
           </div>
         )}
 
-        {/* Recipe Details Modal */}
-        {showModal && selectedRecipe && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="relative">
-                <img
-                  src={selectedRecipe.image}
-                  alt={selectedRecipe.title}
-                  className="w-full h-64 object-cover"
-                />
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-gray-900"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedRecipe.title}</h2>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
-                    <ul className="space-y-2">
-                      {getIngredients(selectedRecipe).map((ingredient, index) => (
-                        <li key={index} className="text-gray-700 flex items-center space-x-2">
-                          <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                          <span>{ingredient}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
-                    <div className="text-gray-700 max-h-64 overflow-y-auto space-y-2">
-                      {selectedRecipe.analyzedInstructions?.[0]?.steps?.map((step, index) => (
-                        <div key={index} className="flex gap-3">
-                          <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
-                            {step.number}
-                          </span>
-                          <p className="text-sm">{step.step}</p>
-                        </div>
-                      )) || (
-                        <div dangerouslySetInnerHTML={{ __html: selectedRecipe.instructions }} />
-                      )}
-                    </div>
-                    
-                    {selectedRecipe.sourceUrl && (
-                      <div className="mt-4">
-                        <a
-                          href={selectedRecipe.sourceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200"
-                        >
-                          <span>View Original Recipe</span>
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <RecipeDetailModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          recipe={selectedRecipe}
+        />
 
         {/* Voice Recipe Assistant */}
         <VoiceRecipeAssistant />

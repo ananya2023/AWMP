@@ -54,5 +54,27 @@ router.put('/pantry-items/:item_id', pantryController.updatePantryItem);
 
 router.post('/send-expiry-notification', notificationController.sendExpiryNotification);
 
+// SAVED RECIPES ROUTES
+// POST /api/saved-recipes - Save a recipe
+router.post('/saved-recipes', pantryController.saveRecipe);
+
+// GET /api/saved-recipes?user_id=123 - Get saved recipes for a user
+router.get('/saved-recipes', pantryController.getSavedRecipes);
+
+// DELETE /api/saved-recipes/:user_id/:recipe_id - Delete a saved recipe
+router.delete('/saved-recipes/:user_id/:recipe_id', pantryController.deleteSavedRecipe);
+
+// MEAL PLANS ROUTES
+// POST /api/meal-plans - Save a meal plan
+router.post('/meal-plans', pantryController.saveMealPlan);
+
+// GET /api/meal-plans?user_id=123&start_date=2024-01-01&end_date=2024-01-07 - Get meal plans
+router.get('/meal-plans', pantryController.getMealPlans);
+
+// PUT /api/meal-plans/:user_id/:meal_plan_id - Update a meal plan
+router.put('/meal-plans/:user_id/:meal_plan_id', pantryController.updateMealPlan);
+
+// DELETE /api/meal-plans/:user_id/:meal_plan_id - Delete a meal plan
+router.delete('/meal-plans/:user_id/:meal_plan_id', pantryController.deleteMealPlan);
 
 module.exports = router;
