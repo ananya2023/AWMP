@@ -235,7 +235,7 @@ const Pantry = () => {
     },
   ];
 
-  const displayItems = pantryItems.length > 0 ? pantryItems : mockItems;
+  const displayItems = pantryItems;
 
   const categories = [
     { id: 'all', label: 'All Items', count: displayItems.length },

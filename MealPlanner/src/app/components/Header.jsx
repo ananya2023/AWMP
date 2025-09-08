@@ -39,6 +39,8 @@ const Header = () => {
       setActiveTab('suggestions');
     } else if (path === '/pantry') {
       setActiveTab('pantry');
+    } else if (path === '/meal-plans') {
+      setActiveTab('meal-plans');
     }
   }, [location.pathname]);
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
@@ -84,7 +86,7 @@ const Header = () => {
 
   const menuItems = [
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
-    { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => setShowMealPlan(true) },
+    { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => { navigate('/meal-plans'); setActiveTab('meal-plans'); } },
     { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => { navigate('/suggestions'); setActiveTab('suggestions'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
     { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => { navigate('/pantry'); setActiveTab('pantry'); } },
@@ -111,7 +113,8 @@ const Header = () => {
         setActiveTab('recipes');
         break;
       case 'mealPlans':
-        setShowMealPlan(true);
+        navigate('/meal-plans');
+        setActiveTab('meal-plans');
         break;
       case 'recipeSuggestions':
         navigate('/suggestions');
@@ -144,7 +147,7 @@ const Header = () => {
         navigate('/recipes');
         break;
       case 'meal-plans':
-        setShowMealPlan(true);
+        navigate('/meal-plans');
         break;
       case 'suggestions':
         navigate('/suggestions');

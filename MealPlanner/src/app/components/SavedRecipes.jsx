@@ -1,79 +1,52 @@
-import React, { useState } from 'react';
-import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2 } from 'lucide-react';
+import { getAuth } from 'firebase/auth';
 import Header from './Header';
+import RecipeDetailModal from './RecipeDetailModal';
+import { getSavedRecipes, deleteSavedRecipe } from '../../api/savedRecipesApi';
 
 const SavedRecipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const recipes = [
-    {
-      id: 1,
-      title: 'Zero-Waste Veggie Stir Fry',
-      image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '15 min',
-      servings: 4,
-      difficulty: 'Easy',
-      wasteReduced: 85,
-      tags: ['vegetarian', 'quick', 'leftovers'],
-      rating: 4.8,
-    },
-    {
-      id: 2,
-      title: 'Leftover Bread Pudding',
-      image: 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '45 min',
-      servings: 6,
-      difficulty: 'Medium',
-      wasteReduced: 95,
-      tags: ['dessert', 'bread rescue'],
-      rating: 4.6,
-    },
-    {
-      id: 3,
-      title: 'Banana Peel Curry',
-      image: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '30 min',
-      servings: 4,
-      difficulty: 'Medium',
-      wasteReduced: 100,
-      tags: ['innovative', 'vegan', 'exotic'],
-      rating: 4.5,
-    },
-    {
-      id: 4,
-      title: 'Vegetable Scrap Broth',
-      image: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '60 min',
-      servings: 8,
-      difficulty: 'Easy',
-      wasteReduced: 90,
-      tags: ['soup', 'base', 'scraps'],
-      rating: 4.9,
-    },
-    {
-      id: 5,
-      title: 'Wilted Greens Pasta',
-      image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '20 min',
-      servings: 4,
-      difficulty: 'Easy',
-      wasteReduced: 80,
-      tags: ['pasta', 'greens', 'quick'],
-      rating: 4.7,
-    },
-    {
-      id: 6,
-      title: 'Fruit Peel Smoothie',
-      image: 'https://images.pexels.com/photos/775032/pexels-photo-775032.jpeg?auto=compress&cs=tinysrgb&w=400',
-      cookTime: '5 min',
-      servings: 2,
-      difficulty: 'Easy',
-      wasteReduced: 75,
-      tags: ['smoothie', 'healthy', 'breakfast'],
-      rating: 4.4,
-    },
-  ];
+  useEffect(() => {
+    loadSavedRecipes();
+  }, []);
+
+  const loadSavedRecipes = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        setRecipes([]);
+        setLoading(false);
+        return;
+      }
+
+      const savedRecipes = await getSavedRecipes(user.uid);
+      setRecipes(savedRecipes);
+    } catch (error) {
+      console.error('Error loading saved recipes:', error);
+      setRecipes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      await deleteSavedRecipe(userData.user_id, recipeId);
+      setRecipes(recipes.filter(recipe => recipe.recipe_id !== recipeId));
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      alert('Failed to delete recipe');
+    }
+  };
 
   const filters = [
     { id: 'all', label: 'All Recipes' },
@@ -122,101 +95,110 @@ const SavedRecipes = () => {
       </div>
 
       {/* Recipe Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recipes.map((recipe, index) => (
-          <div
-            key={recipe.id}
-            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group cursor-pointer"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            {/* Image */}
-            <div className="relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
-              <img
-                src={recipe.image}
-                alt={recipe.title}
-                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="absolute top-3 right-3">
-                <button className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-500 hover:text-red-600 hover:scale-110 transition-all duration-300 group/heart">
-                  <Heart className="h-4 w-4 fill-current group-hover/heart:animate-pulse" />
-                </button>
-              </div>
-              <div className="absolute bottom-3 left-3">
-                <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-medium rounded-full shadow-lg animate-pulse">
-                  {recipe.wasteReduced}% waste reduced
-                </span>
-              </div>
-              {recipe.wasteReduced >= 90 && (
-                <div className="absolute top-3 left-3">
-                  <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-bold flex items-center space-x-1 animate-bounce">
-                    <Zap className="h-3 w-3" />
-                    <span>Super Saver!</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors duration-300">
-                {recipe.title}
-              </h3>
-              
-              {/* Meta Info */}
-              <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                <div className="flex items-center space-x-1">
-                  <Clock className="h-4 w-4 group-hover:animate-spin transition-transform duration-300" />
-                  <span>{recipe.cookTime}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Users className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
-                  <span>{recipe.servings} servings</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-400 fill-current group-hover:animate-pulse" />
-                  <span>{recipe.rating}</span>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {recipe.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full hover:bg-emerald-100 hover:text-emerald-700 transition-all duration-300 cursor-pointer"
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+          <span className="ml-2 text-gray-600">Loading saved recipes...</span>
+        </div>
+      ) : recipes.length === 0 ? (
+        <div className="text-center py-12">
+          <ChefHat className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No saved recipes yet</h3>
+          <p className="text-gray-600">Start saving recipes from the suggestions page!</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recipes.map((recipe, index) => (
+            <div
+              key={recipe.id}
+              onClick={() => {
+                setSelectedRecipe(recipe);
+                setShowModal(true);
+              }}
+              className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group cursor-pointer"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              {/* Image */}
+              <div className="relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <img
+                  src={recipe.image || 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=400'}
+                  alt={recipe.title}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-3 right-3">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteRecipe(recipe.recipe_id);
+                    }}
+                    className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-500 hover:text-red-600 hover:scale-110 transition-all duration-300 group/heart"
                   >
-                    #{tag}
+                    <Heart className="h-4 w-4 fill-current group-hover/heart:animate-pulse" />
+                  </button>
+                </div>
+                <div className="absolute bottom-3 left-3">
+                  <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-medium rounded-full shadow-lg">
+                    Saved Recipe
                   </span>
-                ))}
+                </div>
               </div>
 
-              {/* Difficulty */}
-              <div className="flex items-center justify-between">
-                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                  recipe.difficulty === 'Easy' 
-                    ? 'bg-green-100 text-green-700' 
-                    : 'bg-orange-100 text-orange-700'
-                }`}>
-                  {recipe.difficulty}
-                </span>
-                <button className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-all duration-300 hover:scale-105 flex items-center space-x-1 group/btn">
-                  View Recipe →
-                  <Sparkles className="h-3 w-3 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
-                </button>
+              {/* Content */}
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors duration-300">
+                  {recipe.title}
+                </h3>
+                
+                {/* Meta Info */}
+                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                  {recipe.ready_in_minutes && (
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4 group-hover:animate-spin transition-transform duration-300" />
+                      <span>{recipe.ready_in_minutes} min</span>
+                    </div>
+                  )}
+                  {recipe.servings && (
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+                      <span>{recipe.servings} servings</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Date Saved */}
+                <div className="text-xs text-gray-500 mb-4">
+                  Saved on {new Date(recipe.date_saved).toLocaleDateString()}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-end">
+                  {recipe.source_url && (
+                    <a 
+                      href={recipe.source_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-emerald-600 hover:text-emerald-700 font-medium transition-all duration-300 hover:scale-105 flex items-center space-x-1 group/btn"
+                    >
+                      View Recipe →
+                      <Sparkles className="h-3 w-3 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Load More */}
-      <div className="text-center">
-        <button className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 font-medium hover:scale-105 hover:shadow-lg">
-          Load More Recipes
-        </button>
+
       </div>
-      </div>
+      
+      <RecipeDetailModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        recipe={selectedRecipe}
+      />
     </>
   );
 };
