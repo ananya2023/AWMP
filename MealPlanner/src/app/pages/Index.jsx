@@ -8,7 +8,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const handleStartJourney = () => {
-    navigate('/home');
+    navigate('/dashboard');
   };
 
   const features = [

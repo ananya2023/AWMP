@@ -12,9 +12,10 @@ const MealPlanDialog = ({
   onClose,
   selectedDay = 'Mon',
   mealType = 'dinner',
-  suggestedRecipe = '',
+  onSave,
+  existingMeal = null,
 }) => {
-  const [recipeName, setRecipeName] = useState(suggestedRecipe);
+  const [recipeName, setRecipeName] = useState('');
   const [cookTime, setCookTime] = useState('');
   const [servings, setServings] = useState('');
   const [notes, setNotes] = useState('');
@@ -29,24 +30,31 @@ const MealPlanDialog = ({
   ];
 
   const handleSave = () => {
-    if (!recipeName || !plannedDay || !plannedMealType) {
+    console.log('Validation check:', {
+      recipeName: recipeName,
+      plannedDay: plannedDay,
+      plannedMealType: plannedMealType
+    });
+    
+    if (!recipeName.trim() || !plannedDay.trim() || !plannedMealType.trim()) {
       alert('Please fill in recipe name, day, and meal type');
       return;
     }
 
-    const mealPlan = {
+    const mealData = {
       day: plannedDay,
       mealType: plannedMealType,
-      recipeName,
+      name: recipeName,
       cookTime,
       servings,
       notes,
     };
 
-    console.log('Saving meal plan:', mealPlan);
-    onClose();
+    if (onSave) {
+      onSave(mealData);
+    }
 
-    // Reset
+    // Reset form
     setRecipeName('');
     setCookTime('');
     setServings('');
@@ -54,10 +62,21 @@ const MealPlanDialog = ({
   };
 
   useEffect(() => {
-    setRecipeName(suggestedRecipe);
     setPlannedDay(selectedDay);
     setPlannedMealType(mealType);
-  }, [suggestedRecipe, selectedDay, mealType]);
+    
+    if (existingMeal) {
+      setRecipeName(existingMeal.name || '');
+      setCookTime(existingMeal.cookTime || '');
+      setServings(existingMeal.servings || '');
+      setNotes(existingMeal.notes || '');
+    } else {
+      setRecipeName('');
+      setCookTime('');
+      setServings('');
+      setNotes('');
+    }
+  }, [selectedDay, mealType, existingMeal]);
 
   if (!isOpen) return null;
 
@@ -186,7 +205,7 @@ const MealPlanDialog = ({
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
           >
             <Plus size={18} />
-            Add to Plan
+            {existingMeal ? 'Update Plan' : 'Add to Plan'}
           </button>
           <button 
             onClick={onClose}

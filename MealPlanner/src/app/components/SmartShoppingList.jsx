@@ -35,156 +35,119 @@ const SmartShoppingList = () => {
   };
 
   return (
-    <Card>
-      <CardHeader
-        title={
-          <Box display="flex" alignItems="center">
-            <ShoppingCart size={20} style={{ marginRight: 8 }} />
-            <Typography variant="h6">Smart Shopping List</Typography>
-          </Box>
-        }
-        action={
-          <Chip
-            label={`${pendingItems.length} items needed`}
-            variant="outlined"
-            color="default"
-          />
-        }
-      />
-      <CardContent>
-        <Stack spacing={3}>
-          {pendingItems.length > 0 && (
-            <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                Need to Buy
-              </Typography>
-              <Stack spacing={2}>
-                {pendingItems.map((item) => {
-                  const colorStyle = getCategoryColor(item.category);
-                  return (
-                    <Box
-                      key={item.id}
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      p={2}
-                      sx={{
-                        backgroundColor: '#f9fafb',
-                        borderRadius: 2,
-                        '&:hover': { backgroundColor: '#f3f4f6' },
-                      }}
-                    >
-                      <Box flex={1}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Typography variant="subtitle2">{item.name}</Typography>
-                          <Chip
-                            label={item.category}
-                            size="small"
-                            sx={{
-                              bgcolor: colorStyle.background,
-                              color: colorStyle.color,
-                              fontWeight: 500,
-                            }}
-                          />
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.quantity}
-                        </Typography>
-                        {item.fromRecipe && (
-                          <Typography variant="caption" color="primary">
-                            For: {item.fromRecipe}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Box display="flex" gap={1}>
-                        <IconButton
-                          size="small"
-                          onClick={() => togglePurchased(item.id)}
-                          color="success"
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-2">
+          <ShoppingCart className="h-5 w-5 text-emerald-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Smart Shopping List</h2>
+        </div>
+        <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full border">
+          {pendingItems.length} items needed
+        </span>
+      </div>
+      <div className="space-y-6">
+        {pendingItems.length > 0 && (
+          <div>
+            <h3 className="text-base font-medium text-gray-900 mb-3">Need to Buy</h3>
+            <div className="space-y-2">
+              {pendingItems.map((item) => {
+                const colorStyle = getCategoryColor(item.category);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-medium text-gray-900">{item.name}</span>
+                        <span
+                          className="px-2 py-1 text-xs font-medium rounded-full"
+                          style={{
+                            backgroundColor: colorStyle.background,
+                            color: colorStyle.color,
+                          }}
                         >
-                          <Check size={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => removeItem(item.id)}
-                          color="error"
+                          {item.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">{item.quantity}</p>
+                      {item.fromRecipe && (
+                        <p className="text-xs text-emerald-600">For: {item.fromRecipe}</p>
+                      )}
+                    </div>
+                    <div className="flex space-x-1">
+                      <button
+                        onClick={() => togglePurchased(item.id)}
+                        className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => removeItem(item.id)}
+                        className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {purchasedItems.length > 0 && (
+          <div>
+            <h3 className="text-base font-medium text-gray-500 mb-3">Purchased</h3>
+            <div className="space-y-2">
+              {purchasedItems.map((item) => {
+                const colorStyle = getCategoryColor(item.category);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg opacity-75"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-medium text-gray-500 line-through">{item.name}</span>
+                        <span
+                          className="px-2 py-1 text-xs font-medium rounded-full"
+                          style={{
+                            backgroundColor: colorStyle.background,
+                            color: colorStyle.color,
+                          }}
                         >
-                          <X size={16} />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  );
-                })}
-              </Stack>
-            </Box>
-          )}
-
-          {purchasedItems.length > 0 && (
-            <Box>
-              <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                Purchased
-              </Typography>
-              <Stack spacing={2}>
-                {purchasedItems.map((item) => {
-                  const colorStyle = getCategoryColor(item.category);
-                  return (
-                    <Box
-                      key={item.id}
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                      p={2}
-                      sx={{
-                        backgroundColor: '#ecfdf5',
-                        borderRadius: 2,
-                        opacity: 0.75,
-                      }}
+                          {item.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">{item.quantity}</p>
+                    </div>
+                    <button
+                      onClick={() => togglePurchased(item.id)}
+                      className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded transition-colors"
                     >
-                      <Box flex={1}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ textDecoration: 'line-through', color: 'text.secondary' }}
-                          >
-                            {item.name}
-                          </Typography>
-                          <Chip
-                            label={item.category}
-                            size="small"
-                            sx={{
-                              bgcolor: colorStyle.background,
-                              color: colorStyle.color,
-                              fontWeight: 500,
-                            }}
-                          />
-                        </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {item.quantity}
-                        </Typography>
-                      </Box>
-                      <Button size="small" onClick={() => togglePurchased(item.id)}>
-                        Undo
-                      </Button>
-                    </Box>
-                  );
-                })}
-              </Stack>
-            </Box>
-          )}
+                      Undo
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-          <Divider />
+        <hr className="border-gray-200" />
 
-          <Box display="flex" gap={2} pt={2}>
-            <Button variant="outlined" fullWidth startIcon={<Plus size={16} />}>
-              Add Item
-            </Button>
-            <Button variant="contained" color="success" fullWidth>
-              Share List
-            </Button>
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
+        <div className="flex space-x-2 pt-2">
+          <button className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <Plus className="h-4 w-4" />
+            <span>Add Item</span>
+          </button>
+          <button className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            Share List
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

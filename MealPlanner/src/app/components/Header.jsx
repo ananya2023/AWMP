@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X } from 'lucide-react';
+import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import SavedRecipes from './SavedRecipes';
 import MealPlansView from './MealPlansView';
 import Profile from './MyProfile';
@@ -8,12 +9,25 @@ import ProfileView from './ProfileView';
 import Pantry from './Pantry';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import SmartSubstitutions from './SmartSubstitutions';
-import Dashboard from './Dashboard';  
+import Dashboard from './Dashboard';
+import LogoutConfirmation from './LogoutConfirmation';  
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [user, setUser] = useState(null);
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) {
+        navigate('/login');
+      }
+    });
+    return () => unsubscribe();
+  }, [auth, navigate]);
 
   useEffect(() => {
     const path = location.pathname;
@@ -25,6 +39,8 @@ const Header = () => {
       setActiveTab('suggestions');
     } else if (path === '/pantry') {
       setActiveTab('pantry');
+    } else if (path === '/meal-plans') {
+      setActiveTab('meal-plans');
     }
   }, [location.pathname]);
   const [showSavedRecipes, setShowSavedRecipes] = useState(false);
@@ -36,13 +52,30 @@ const Header = () => {
   const [showSubstitutions, setShowSubstitutions] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
   const [userData, setUserData] = useState({
-    name: 'Ananya Miriyala',
-    email: 'ananya@example.com',
+    name: user?.displayName || 'User',
+    email: user?.email || 'user@example.com',
     phone: '9876543210',
-    avatar: 'https://i.pravatar.cc/300',
+    avatar: user?.photoURL || 'https://i.pravatar.cc/300',
   });
+
+  const handleLogoutClick = () => {
+    setShowLogoutConfirmation(true);
+    setShowProfileDropdown(false);
+  };
+
+  const handleLogoutConfirm = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+      setShowLogoutConfirmation(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      alert('Failed to logout. Please try again.');
+    }
+  };
   
 
 
@@ -53,10 +86,15 @@ const Header = () => {
 
   const menuItems = [
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
-    { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => setShowMealPlan(true) },
+    { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => { navigate('/meal-plans'); setActiveTab('meal-plans'); } },
     { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => { navigate('/suggestions'); setActiveTab('suggestions'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
     { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => { navigate('/pantry'); setActiveTab('pantry'); } },
+  ];
+
+  const profileMenuItems = [
+    { text: 'Your Profile', icon: <User size={20} />, action: () => setShowProfileView(true) },
+    { text: 'Sign Out', icon: <LogOut size={20} />, action: handleLogoutClick, isLogout: true },
   ];
 
   const handleDrawerToggle = () => {
@@ -75,7 +113,8 @@ const Header = () => {
         setActiveTab('recipes');
         break;
       case 'mealPlans':
-        setShowMealPlan(true);
+        navigate('/meal-plans');
+        setActiveTab('meal-plans');
         break;
       case 'recipeSuggestions':
         navigate('/suggestions');
@@ -108,7 +147,7 @@ const Header = () => {
         navigate('/recipes');
         break;
       case 'meal-plans':
-        setShowMealPlan(true);
+        navigate('/meal-plans');
         break;
       case 'suggestions':
         navigate('/suggestions');
@@ -183,6 +222,12 @@ const Header = () => {
                 {showProfileDropdown && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                     <div className="py-2">
+                      {/* User Info */}
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <div className="font-medium text-gray-900">{user?.displayName || 'User'}</div>
+                        <div className="text-sm text-gray-500">{user?.email}</div>
+                      </div>
+                      
                       <button 
                         onClick={() => {
                           setShowProfileView(true);
@@ -196,6 +241,7 @@ const Header = () => {
                           <div className="text-sm text-gray-500">Manage account settings</div>
                         </div>
                       </button>
+                      
                       <button 
                         onClick={() => {
                           setShowSubstitutions(true);
@@ -209,6 +255,19 @@ const Header = () => {
                           <div className="text-sm text-gray-500">Find ingredient alternatives</div>
                         </div>
                       </button>
+                      
+                      <div className="border-t border-gray-100 mt-2">
+                        <button 
+                          onClick={handleLogoutClick}
+                          className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center space-x-3 transition-colors duration-200 text-red-600 hover:text-red-700"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <div>
+                            <div className="font-medium">Sign Out</div>
+                            <div className="text-sm text-red-500">Logout from your account</div>
+                          </div>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -265,6 +324,40 @@ const Header = () => {
                     </span>
                   </button>
                 ))}
+                
+                {/* User Section */}
+                <div className="pt-4 mt-4 border-t border-gray-200">
+                  <div className="px-4 py-2 mb-2">
+                    <div className="text-sm font-medium text-gray-900">{user?.displayName || 'User'}</div>
+                    <div className="text-xs text-gray-500">{user?.email}</div>
+                  </div>
+                  {profileMenuItems.map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleMenuItemClick(item.action)}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-xl transition-all duration-300 group ${
+                        item.isLogout 
+                          ? 'hover:bg-red-50 hover:translate-x-2' 
+                          : 'hover:bg-emerald-50 hover:translate-x-2'
+                      }`}
+                    >
+                      <div className={`p-2 rounded-lg transition-all duration-300 ${
+                        item.isLogout 
+                          ? 'bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white'
+                          : 'bg-gray-100 text-gray-600 group-hover:bg-emerald-500 group-hover:text-white'
+                      }`}>
+                        {item.icon}
+                      </div>
+                      <span className={`font-medium transition-colors duration-300 ${
+                        item.isLogout 
+                          ? 'text-red-700 group-hover:text-red-600'
+                          : 'text-gray-700 group-hover:text-emerald-600'
+                      }`}>
+                        {item.text}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </nav>
             </div>
           </div>
@@ -387,6 +480,13 @@ const Header = () => {
         onClose={() => setShowProfile(false)}
         userData={userData}
         onSave={handleProfileSave}
+      />
+      
+      <LogoutConfirmation
+        isOpen={showLogoutConfirmation}
+        onClose={() => setShowLogoutConfirmation(false)}
+        onConfirm={handleLogoutConfirm}
+        userName={user?.displayName}
       />
     </>
   );

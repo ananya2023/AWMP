@@ -14,7 +14,7 @@ const GoogleButton = (email) => {
       if (user) {
         // You might want to add a check here to ensure the user document
         // is created in Firestore before navigating, or handle it in your home page component.
-        navigate("/home");
+        navigate("/dashboard");
       }
     });
     return () => unsubscribe();
@@ -61,7 +61,7 @@ const GoogleButton = (email) => {
           if (backendResponse.ok) {
             console.log('Backend processed user login:', backendData);
             // Now that the backend has processed the user, navigate
-            navigate("/home");
+            navigate("/dashboard");
           } else {
             console.error('Backend error processing user login:', backendData.message);
             // Handle backend errors (e.g., display an error message to the user)

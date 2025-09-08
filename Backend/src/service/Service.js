@@ -383,3 +383,255 @@ exports.updatePantryItem = async (item_id, updateData) => {
     throw new Error(`Error updating pantry item: ${error.message}`);
   }
 };
+
+exports.saveRecipe = async (user_id, recipeData) => {
+  try {
+    const { id, title, image, readyInMinutes, servings, sourceUrl, summary, extendedIngredients, analyzedInstructions, spoonacularScore, vegetarian, vegan, glutenFree, dairyFree, healthScore } = recipeData;
+    
+    const existingRecipe = await db.collection('saved_recipes')
+      .where('user_id', '==', user_id)
+      .where('recipe_id', '==', id)
+      .limit(1)
+      .get();
+    
+    if (!existingRecipe.empty) {
+      throw new Error('Recipe already saved');
+    }
+    
+    const recipeRef = db.collection('saved_recipes').doc();
+    const savedRecipeData = {
+      id: recipeRef.id,
+      user_id: user_id,
+      recipe_id: id,
+      title: title,
+      image: image || null,
+      ready_in_minutes: readyInMinutes || null,
+      servings: servings || null,
+      source_url: sourceUrl || null,
+      summary: summary || null,
+      extended_ingredients: extendedIngredients || null,
+      analyzed_instructions: analyzedInstructions || null,
+      spoonacular_score: spoonacularScore || null,
+      vegetarian: vegetarian || false,
+      vegan: vegan || false,
+      gluten_free: glutenFree || false,
+      dairy_free: dairyFree || false,
+      health_score: healthScore || null,
+      date_saved: new Date()
+    };
+    
+    await recipeRef.set(savedRecipeData);
+    return { id: recipeRef.id, ...savedRecipeData };
+    
+  } catch (error) {
+    throw new Error(`Error saving recipe: ${error.message}`);
+  }
+};
+
+exports.getSavedRecipes = async (user_id) => {
+  try {
+    const recipesSnapshot = await db.collection('saved_recipes')
+      .where('user_id', '==', user_id)
+      .orderBy('date_saved', 'desc')
+      .get();
+    
+    if (recipesSnapshot.empty) {
+      return [];
+    }
+    
+    return recipesSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        user_id: data.user_id,
+        recipe_id: data.recipe_id,
+        title: data.title,
+        image: data.image,
+        ready_in_minutes: data.ready_in_minutes,
+        servings: data.servings,
+        source_url: data.source_url,
+        summary: data.summary,
+        extendedIngredients: data.extended_ingredients,
+        analyzedInstructions: data.analyzed_instructions,
+        spoonacularScore: data.spoonacular_score,
+        vegetarian: data.vegetarian,
+        vegan: data.vegan,
+        glutenFree: data.gluten_free,
+        dairyFree: data.dairy_free,
+        healthScore: data.health_score,
+        date_saved: data.date_saved ? data.date_saved.toDate() : null
+      };
+    });
+    
+  } catch (error) {
+    throw new Error(`Error getting saved recipes: ${error.message}`);
+  }
+};
+
+exports.deleteSavedRecipe = async (user_id, recipe_id) => {
+  try {
+    const recipeSnapshot = await db.collection('saved_recipes')
+      .where('user_id', '==', user_id)
+      .where('recipe_id', '==', recipe_id)
+      .limit(1)
+      .get();
+    
+    if (recipeSnapshot.empty) {
+      throw new Error('Saved recipe not found');
+    }
+    
+    await recipeSnapshot.docs[0].ref.delete();
+    
+  } catch (error) {
+    throw new Error(`Error deleting saved recipe: ${error.message}`);
+  }
+};
+
+exports.saveMealPlan = async (user_id, mealPlanData) => {
+  try {
+    const { date, meals } = mealPlanData;
+    
+    // Check if meal plan already exists for this date
+    const existingPlanSnapshot = await db.collection('meal_plans')
+      .where('user_id', '==', user_id)
+      .where('date', '==', date)
+      .limit(1)
+      .get();
+    
+    if (!existingPlanSnapshot.empty) {
+      // Update existing meal plan
+      const existingDoc = existingPlanSnapshot.docs[0];
+      const updatedData = {
+        meals: meals,
+        updated_at: new Date()
+      };
+      
+      await existingDoc.ref.update(updatedData);
+      
+      const updatedDoc = await existingDoc.ref.get();
+      const result = updatedDoc.data();
+      
+      return {
+        id: existingDoc.id,
+        user_id: result.user_id,
+        date: result.date,
+        meals: result.meals,
+        created_at: result.created_at ? result.created_at.toDate() : null,
+        updated_at: result.updated_at ? result.updated_at.toDate() : null
+      };
+    } else {
+      // Create new meal plan
+      const mealPlanRef = db.collection('meal_plans').doc();
+      const savedMealPlan = {
+        id: mealPlanRef.id,
+        user_id: user_id,
+        date: date,
+        meals: meals,
+        created_at: new Date()
+      };
+      
+      await mealPlanRef.set(savedMealPlan);
+      return { id: mealPlanRef.id, ...savedMealPlan };
+    }
+    
+  } catch (error) {
+    throw new Error(`Error saving meal plan: ${error.message}`);
+  }
+};
+
+exports.getMealPlans = async (user_id, startDate, endDate) => {
+  try {
+    const mealPlansSnapshot = await db.collection('meal_plans')
+      .where('user_id', '==', user_id)
+      .get();
+    
+    if (mealPlansSnapshot.empty) {
+      return [];
+    }
+    
+    let mealPlans = mealPlansSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        user_id: data.user_id,
+        date: data.date,
+        meals: data.meals,
+        created_at: data.created_at ? data.created_at.toDate() : null
+      };
+    });
+    
+    // Filter by date range on client side
+    if (startDate && endDate) {
+      mealPlans = mealPlans.filter(plan => 
+        plan.date >= startDate && plan.date <= endDate
+      );
+    }
+    
+    // Sort by date descending
+    mealPlans.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    return mealPlans;
+    
+  } catch (error) {
+    throw new Error(`Error getting meal plans: ${error.message}`);
+  }
+};
+
+exports.updateMealPlan = async (user_id, meal_plan_id, updateData) => {
+  try {
+    const mealPlanRef = db.collection('meal_plans').doc(meal_plan_id);
+    const mealPlanDoc = await mealPlanRef.get();
+    
+    if (!mealPlanDoc.exists) {
+      throw new Error('Meal plan not found');
+    }
+    
+    const mealPlanData = mealPlanDoc.data();
+    if (mealPlanData.user_id !== user_id) {
+      throw new Error('Unauthorized to update this meal plan');
+    }
+    
+    const updatedData = {
+      ...updateData,
+      updated_at: new Date()
+    };
+    
+    await mealPlanRef.update(updatedData);
+    
+    const updatedDoc = await mealPlanRef.get();
+    const result = updatedDoc.data();
+    
+    return {
+      id: meal_plan_id,
+      user_id: result.user_id,
+      date: result.date,
+      meals: result.meals,
+      created_at: result.created_at ? result.created_at.toDate() : null,
+      updated_at: result.updated_at ? result.updated_at.toDate() : null
+    };
+    
+  } catch (error) {
+    throw new Error(`Error updating meal plan: ${error.message}`);
+  }
+};
+
+exports.deleteMealPlan = async (user_id, meal_plan_id) => {
+  try {
+    const mealPlanRef = db.collection('meal_plans').doc(meal_plan_id);
+    const mealPlanDoc = await mealPlanRef.get();
+    
+    if (!mealPlanDoc.exists) {
+      throw new Error('Meal plan not found');
+    }
+    
+    const mealPlanData = mealPlanDoc.data();
+    if (mealPlanData.user_id !== user_id) {
+      throw new Error('Unauthorized to delete this meal plan');
+    }
+    
+    await mealPlanRef.delete();
+    
+  } catch (error) {
+    throw new Error(`Error deleting meal plan: ${error.message}`);
+  }
+};
