@@ -12,13 +12,13 @@ if (!GEMINI_API_KEY) {
 }
 
 const app = express();
-const port = 3001; // Backend server port
+const port = 3008; // Backend server port
 
 // ------------------------
 // 🟢 CORS CONFIGURATION
 // ------------------------
 const corsOptions = {
-  origin: 'http://localhost:5173',  // ✅ Only allow your frontend
+  origin: process.env.VITE_APP_BASE_URL || 'http://localhost:5173',  // ✅ Only allow your frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true                // ✅ Important to allow cookies/auth

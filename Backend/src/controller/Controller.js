@@ -188,3 +188,128 @@ exports.updatePantryItem = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.saveRecipe = async (req, res) => {
+  try {
+    const { user_id, recipe } = req.body;
+    
+    if (!user_id || !recipe) {
+      return res.status(400).json({ message: 'user_id and recipe are required' });
+    }
+    
+    const savedRecipe = await pantryService.saveRecipe(user_id, recipe);
+    res.status(201).json({
+      message: 'Recipe saved successfully',
+      data: savedRecipe
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getSavedRecipes = async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    
+    if (!user_id) {
+      return res.status(400).json({ message: 'user_id is required' });
+    }
+    
+    const savedRecipes = await pantryService.getSavedRecipes(user_id);
+    res.status(200).json({
+      message: 'Saved recipes retrieved successfully',
+      data: savedRecipes
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteSavedRecipe = async (req, res) => {
+  try {
+    const { user_id, recipe_id } = req.params;
+    
+    if (!user_id || !recipe_id) {
+      return res.status(400).json({ message: 'user_id and recipe_id are required' });
+    }
+    
+    await pantryService.deleteSavedRecipe(user_id, parseInt(recipe_id));
+    res.status(200).json({
+      message: 'Recipe removed from saved recipes'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.saveMealPlan = async (req, res) => {
+  try {
+    const { user_id, meal_plan } = req.body;
+    
+    if (!user_id || !meal_plan) {
+      return res.status(400).json({ message: 'user_id and meal_plan are required' });
+    }
+    
+    const savedMealPlan = await pantryService.saveMealPlan(user_id, meal_plan);
+    res.status(201).json({
+      message: 'Meal plan saved successfully',
+      data: savedMealPlan
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getMealPlans = async (req, res) => {
+  try {
+    const { user_id, start_date, end_date } = req.query;
+    
+    if (!user_id) {
+      return res.status(400).json({ message: 'user_id is required' });
+    }
+    
+    const mealPlans = await pantryService.getMealPlans(user_id, start_date, end_date);
+    res.status(200).json({
+      message: 'Meal plans retrieved successfully',
+      data: mealPlans
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.updateMealPlan = async (req, res) => {
+  try {
+    const { user_id, meal_plan_id } = req.params;
+    const updateData = req.body;
+    
+    if (!user_id || !meal_plan_id) {
+      return res.status(400).json({ message: 'user_id and meal_plan_id are required' });
+    }
+    
+    const updatedMealPlan = await pantryService.updateMealPlan(user_id, meal_plan_id, updateData);
+    res.status(200).json({
+      message: 'Meal plan updated successfully',
+      data: updatedMealPlan
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deleteMealPlan = async (req, res) => {
+  try {
+    const { user_id, meal_plan_id } = req.params;
+    
+    if (!user_id || !meal_plan_id) {
+      return res.status(400).json({ message: 'user_id and meal_plan_id are required' });
+    }
+    
+    await pantryService.deleteMealPlan(user_id, meal_plan_id);
+    res.status(200).json({
+      message: 'Meal plan deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
