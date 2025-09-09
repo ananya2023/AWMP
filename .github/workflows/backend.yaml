@@ -4,8 +4,6 @@ on:
   push:
     branches: 
       - 'main'
-    paths:
-      - 'Backend/**'
   workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
 
 env:
