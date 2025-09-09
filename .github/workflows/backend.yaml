@@ -47,15 +47,27 @@ jobs:
         docker build -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} .
         docker push ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}
 
-    - name: Deploy Backend to Cloud Run
-      run: |
-        gcloud run deploy ${{ env.BACKEND_SERVICE }} \
-          --image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} \
-          --region=${{ env.REGION }} \
-          --platform=managed \
-          --allow-unauthenticated \
-          --port=3001
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloudrun@v3'
+      with:
+        service: 'hello-cloud-run'
+        image: '${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}'
+        project_id: ${{ env.PROJECT_ID }}
+        region: ${{ env.REGION }}
+        
 
-    - name: Get Cloud Run URLs
-      run: |
-        echo "Backend URL: $(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')"
+    - name: 'Use output'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
+
+    # - name: Deploy Backend to Cloud Run
+    #   run: |
+    #     gcloud run deploy ${{ env.BACKEND_SERVICE }} \
+    #       --image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} \
+    #       --region=${{ env.REGION }} \
+    #       --platform=managed \
+    #       --allow-unauthenticated \
+    #       --port=3001
+
+    # - name: Get Cloud Run URLs
+    #   run: |
+    #     echo "Backend URL: $(gcloud run services describe ${{ env.BACKEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')"
