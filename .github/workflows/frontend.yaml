@@ -1,4 +1,4 @@
-name: Build and Deploy to GCP
+name: Frontend Build and Deploy to GCP
 
 on:
   push:
@@ -10,7 +10,6 @@ env:
   REGION: ${{ vars.REGION }}
   ARTIFACT_REGISTRY: ${{ vars.ARTIFACT_REGISTRY }}
   REPOSITORY: ${{ vars.REPOSITORY }}
-  BACKEND_SERVICE: ${{ vars.BACKEND_SERVICE }}
   FRONTEND_SERVICE: ${{ vars.FRONTEND_SERVICE }}
 
 jobs:
@@ -40,22 +39,47 @@ jobs:
     - name: Get short commit SHA
       id: vars
       run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    - name: Build and Push Frontend Image
-      run: |
-        cd MealPlanner
-        docker build -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} .
-        docker push ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: ./MealPlanner
+        push: true
+        tags: ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/backend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
 
-    - name: Deploy Frontend to Cloud Run
-      run: |
-        gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
-          --image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} \
-          --region=${{ env.REGION }} \
-          --platform=managed \
-          --allow-unauthenticated \
-          --port=5173
+    # - name: Build and Push Frontend Image
+    #   run: |
+    #     cd MealPlanner
+    #     docker build -t ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} .
+    #     docker push ${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}
 
-    - name: Get Cloud Run URLs
-      run: |
-        echo "Frontend URL: $(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')"
+    - id: 'deploy'
+      uses: 'google-github-actions/deploy-cloudrun@v3'
+      with:
+        service: ${{ env.FRONTEND_SERVICE }}
+        image: '${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }}'
+        project_id: ${{ env.PROJECT_ID }}
+        region: ${{ env.REGION }}
+        
+
+    - name: 'Use output'
+      run: 'curl "${{ steps.deploy.outputs.url }}"'
+
+    # - name: Deploy Frontend to Cloud Run
+    #   run: |
+    #     gcloud run deploy ${{ env.FRONTEND_SERVICE }} \
+    #       --image=${{ env.ARTIFACT_REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/frontend-cooksy-v1:${{ steps.vars.outputs.SHORT_SHA }} \
+    #       --region=${{ env.REGION }} \
+    #       --platform=managed \
+    #       --allow-unauthenticated \
+    #       --port=5173
+
+    # - name: Get Cloud Run URLs
+    #   run: |
+    #     echo "Frontend URL: $(gcloud run services describe ${{ env.FRONTEND_SERVICE }} --region=${{ env.REGION }} --format='value(status.url)')"
