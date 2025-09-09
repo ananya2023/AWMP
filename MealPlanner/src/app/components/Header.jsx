@@ -69,6 +69,7 @@ const Header = () => {
   const handleLogoutConfirm = async () => {
     try {
       await signOut(auth);
+      localStorage.clear();
       navigate('/login');
       setShowLogoutConfirmation(false);
     } catch (error) {

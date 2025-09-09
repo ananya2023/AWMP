@@ -21,6 +21,11 @@ const LoginForm = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      localStorage.setItem('user_data', JSON.stringify({
+        user_id: user.uid,
+        email: user.email,
+        displayName: user.displayName
+      }));
       console.log('User logged in:', user);
       navigate('/dashboard');
     } catch (error) {
