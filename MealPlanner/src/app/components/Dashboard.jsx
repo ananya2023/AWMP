@@ -1,14 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Leaf, Calendar, Lightbulb, Package, TrendingDown, Clock, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Lottie from 'lottie-react';
 import FoodGirlAnimation from '../../assets/FoodGirl.json';
+import { getPantryItems } from '../../api/pantryApi';
+import { getSavedRecipes } from '../../api/savedRecipesApi';
+import { getMealPlans } from '../../api/mealPlansApi';
+import { getAuth } from 'firebase/auth';
 
 const Dashboard = ({ onNavigate }) => {
+  const [dashboardData, setDashboardData] = useState({
+    totalPantryItems: 0,
+    expiringItems: 0,
+    savedRecipesCount: 0,
+    mealPlansCount: 0,
+    wasteReduction: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      const userId = userData?.user_id || user.uid;
+
+      const [pantryItems, savedRecipes, mealPlans] = await Promise.all([
+        getPantryItems(userId).catch(() => []),
+        getSavedRecipes(userId).catch(() => []),
+        getMealPlans(userId).catch(() => [])
+      ]);
+
+      const today = new Date();
+      const expiringItems = pantryItems.filter(item => {
+        if (!item.expiry_date) return false;
+        const expiryDate = new Date(item.expiry_date);
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7 && diffDays >= 0;
+      });
+
+      const wasteReduction = pantryItems.length > 0 ? Math.min(Math.round((savedRecipes.length / pantryItems.length) * 100), 100) : 0;
+
+      setDashboardData({
+        totalPantryItems: pantryItems.length,
+        expiringItems: expiringItems.length,
+        savedRecipesCount: savedRecipes.length,
+        mealPlansCount: mealPlans.length,
+        wasteReduction
+      });
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const stats = [
-    { label: 'Food Waste Reduced', value: '45%', icon: TrendingDown, color: '#10b981' },
-    { label: 'Meals Planned', value: '127', icon: Calendar, color: '#3b82f6' },
-    { label: 'Recipes Saved', value: '89', icon: Star, color: '#f59e0b' },
-    { label: 'Days Streak', value: '23', icon: Clock, color: '#8b5cf6' },
+    { label: 'Food Waste Reduced', value: loading ? '...' : `${dashboardData.wasteReduction}%`, icon: TrendingDown, color: '#10b981' },
+    { label: 'Meals Planned', value: loading ? '...' : dashboardData.mealPlansCount.toString(), icon: Calendar, color: '#3b82f6' },
+    { label: 'Recipes Saved', value: loading ? '...' : dashboardData.savedRecipesCount.toString(), icon: Star, color: '#f59e0b' },
+    { label: 'Pantry Items', value: loading ? '...' : dashboardData.totalPantryItems.toString(), icon: Package, color: '#8b5cf6' },
   ];
 
   const quickActions = [
@@ -18,7 +78,7 @@ const Dashboard = ({ onNavigate }) => {
       description: 'Browse your collection of favorite waste-reducing recipes',
       icon: Leaf,
       gradient: 'linear-gradient(135deg, #10b981, #059669)',
-      count: '89 recipes',
+      count: loading ? 'Loading...' : `${dashboardData.savedRecipesCount} recipes`,
     },
     {
       id: 'mealPlans',
@@ -26,7 +86,7 @@ const Dashboard = ({ onNavigate }) => {
       description: 'Plan your week and optimize ingredient usage',
       icon: Calendar,
       gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-      count: 'This week',
+      count: loading ? 'Loading...' : `${dashboardData.mealPlansCount} plans`,
     },
     {
       id: 'recipeSuggestions',
@@ -34,7 +94,7 @@ const Dashboard = ({ onNavigate }) => {
       description: 'Smart recommendations based on your pantry',
       icon: Lightbulb,
       gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
-      count: '12 new ideas',
+      count: 'Discover new',
     },
     {
       id: 'pantry',
@@ -42,14 +102,14 @@ const Dashboard = ({ onNavigate }) => {
       description: 'Track ingredients and expiration dates',
       icon: Package,
       gradient: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-      count: '3 expiring soon',
+      count: loading ? 'Loading...' : `${dashboardData.expiringItems} expiring soon`,
     },
   ];
 
   const recentActivity = [
-    { action: 'Added recipe', item: 'Zero-Waste Veggie Stir Fry', time: '2 hours ago', color: '#10b981' },
-    { action: 'Planned meal', item: 'Week of March 18-24', time: '1 day ago', color: '#3b82f6' },
-    { action: 'Used ingredient', item: 'Leftover rice → Fried Rice', time: '2 days ago', color: '#f59e0b' },
+    { action: 'Track your', item: 'pantry items and meal plans', time: 'Start now', color: '#10b981' },
+    { action: 'Save recipes', item: 'from suggestions page', time: 'Explore recipes', color: '#3b82f6' },
+    { action: 'Plan meals', item: 'for the upcoming week', time: 'Get organized', color: '#f59e0b' },
   ];
 
   return (
@@ -60,7 +120,7 @@ const Dashboard = ({ onNavigate }) => {
         <div className="welcome-bg-2 absolute bottom-0 left-0 w-24 h-24 bg-gradient-radial from-emerald-600/8 to-transparent rounded-full transform -translate-x-12 translate-y-12 transition-transform duration-700 group-hover:-translate-x-10 group-hover:translate-y-10 group-hover:scale-125"></div>
         <div className="flex items-center p-12 relative z-10">
           <div className="flex-1 max-w-4xl">
-            <h1 className="text-4xl font-bold mb-6 text-gray-900 whitespace-nowrap">
+            <h1 className="text-4xl font-bold mb-6 text-gray-900">
               <span className="inline-block transition-transform duration-300 hover:animate-bounce">Welcome</span>{' '}
               <span className="inline-block transition-transform duration-300 hover:animate-bounce">back</span>{' '}
               <span className="inline-block transition-transform duration-300 hover:animate-bounce">to</span>{' '}

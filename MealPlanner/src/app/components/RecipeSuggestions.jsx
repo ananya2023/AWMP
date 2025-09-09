@@ -6,6 +6,7 @@ import RecipeDetailModal from './RecipeDetailModal';
 import { getAuth } from 'firebase/auth';
 import { getRandomRecipes, searchRecipes, getRecipesByIngredients, getRecipeDetails, getRecipesByType } from '../../api/spoonacularApi';
 import { saveRecipe } from '../../api/savedRecipesApi';
+import { getPantryItems } from '../../api/pantryApi';
 
 const RecipeSuggestions = () => {
   const [recipes, setRecipes] = useState([]);
@@ -15,15 +16,53 @@ const RecipeSuggestions = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [pantryInsights, setPantryInsights] = useState({
+    expiringItems: [],
+    totalItems: 0,
+    potentialSavings: 0
+  });
 
   useEffect(() => {
     loadCategories();
     loadRecipes();
+    loadPantryInsights();
   }, []);
 
   useEffect(() => {
     loadRecipes();
   }, [selectedCategory]);
+
+  const loadPantryInsights = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      const userId = userData?.user_id || user.uid;
+      
+      const pantryItems = await getPantryItems(userId);
+      
+      const today = new Date();
+      const expiringItems = pantryItems.filter(item => {
+        if (!item.expiry_date) return false;
+        const expiryDate = new Date(item.expiry_date);
+        const diffTime = expiryDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7 && diffDays >= 0;
+      });
+
+      const potentialSavings = expiringItems.length * 3.5;
+
+      setPantryInsights({
+        expiringItems: expiringItems.slice(0, 3),
+        totalItems: pantryItems.length,
+        potentialSavings
+      });
+    } catch (error) {
+      console.error('Error loading pantry insights:', error);
+    }
+  };
 
   const loadCategories = async () => {
     const categoryList = [
@@ -178,19 +217,32 @@ const RecipeSuggestions = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered Insights</h3>
               <p className="text-gray-700 mb-3">
-                Based on your pantry analysis, you could save <strong>$15.30</strong> and prevent 
-                <strong> 2.4 lbs</strong> of food waste this week by trying these recipes.
+                Based on your pantry analysis, you could save <strong>${pantryInsights.potentialSavings.toFixed(2)}</strong> and prevent 
+                food waste this week by using {pantryInsights.expiringItems.length > 0 ? 'expiring items' : 'your pantry items'}.
               </p>
               <div className="flex flex-wrap gap-3 text-sm">
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                  🥕 Carrot tops expiring soon
-                </span>
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-                  🍌 5 banana peels available
-                </span>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full">
-                  🍞 Bread getting stale
-                </span>
+                {pantryInsights.expiringItems.length > 0 ? (
+                  pantryInsights.expiringItems.map((item, index) => {
+                    const categoryEmojis = {
+                      'Vegetables': '🥕',
+                      'Fruits': '🍌', 
+                      'Grains': '🍞',
+                      'Dairy': '🥛',
+                      'Proteins': '🥩',
+                      'Spices': '🌿'
+                    };
+                    const emoji = categoryEmojis[item.category?.[0]] || '🥫';
+                    return (
+                      <span key={index} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
+                        {emoji} {item.item_name} expiring soon
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
+                    🌟 {pantryInsights.totalItems} items in your pantry
+                  </span>
+                )}
               </div>
             </div>
           </div>
