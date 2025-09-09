@@ -3,7 +3,7 @@ name: Frontend Build and Deploy to GCP
 on:
   push:
     branches: [ main ]
-  paths:
+    paths:
       - 'MealPlanner/**'
   workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
 
