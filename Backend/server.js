@@ -5,6 +5,7 @@ const admin = require('firebase-admin');
 require('dotenv').config();
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const PORT = process.env.PORT;
 if (!GEMINI_API_KEY) {
     console.error('Error: GEMINI_API_KEY environment variable not set.');
     console.error('Please set it before running the server: export GEMINI_API_KEY="YOUR_API_KEY_HERE"');
@@ -12,7 +13,7 @@ if (!GEMINI_API_KEY) {
 }
 
 const app = express();
-const port = 3008; // Backend server port
+const port = PORT; // Backend server port
 
 // ------------------------
 // 🟢 CORS CONFIGURATION
