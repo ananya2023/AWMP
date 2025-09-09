@@ -60,6 +60,11 @@ const GoogleButton = (email) => {
 
           if (backendResponse.ok) {
             console.log('Backend processed user login:', backendData);
+            localStorage.setItem('user_data', JSON.stringify({
+              user_id: user.uid,
+              email: user.email,
+              displayName: user.displayName
+            }));
             // Now that the backend has processed the user, navigate
             navigate("/dashboard");
           } else {

@@ -12,7 +12,7 @@ if (!GEMINI_API_KEY) {
 }
 
 const app = express();
-const port = 3001; // Backend server port
+const port = 3008; // Backend server port
 
 // ------------------------
 // 🟢 CORS CONFIGURATION
