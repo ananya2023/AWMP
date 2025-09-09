@@ -5,6 +5,14 @@ on:
     branches: [ main ]
   workflow_dispatch: # Allows manual triggering of the workflow from the GitHub Actions tab
 
+env:
+  PROJECT_ID: ${{ vars.PROJECT_ID }}
+  REGION: ${{ vars.REGION }}
+  ARTIFACT_REGISTRY: ${{ vars.ARTIFACT_REGISTRY }}
+  REPOSITORY: ${{ vars.REPOSITORY }}
+  BACKEND_SERVICE: ${{ vars.BACKEND_SERVICE }}
+  FRONTEND_SERVICE: ${{ vars.FRONTEND_SERVICE }}
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
