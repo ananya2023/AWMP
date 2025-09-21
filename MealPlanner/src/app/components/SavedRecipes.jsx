@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import Header from './Header';
 import RecipeDetailModal from './RecipeDetailModal';
 import { getSavedRecipes, deleteSavedRecipe } from '../../api/savedRecipesApi';
+import { getRecipeDetails } from '../../api/spoonacularApi';
 
 const SavedRecipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,9 +112,20 @@ const SavedRecipes = () => {
           {recipes.map((recipe, index) => (
             <div
               key={recipe.id}
-              onClick={() => {
-                setSelectedRecipe(recipe);
-                setShowModal(true);
+              onClick={async () => {
+                try {
+                  if (recipe.recipe_id) {
+                    const fullRecipe = await getRecipeDetails(recipe.recipe_id);
+                    setSelectedRecipe(fullRecipe);
+                  } else {
+                    setSelectedRecipe(recipe);
+                  }
+                  setShowModal(true);
+                } catch (error) {
+                  console.error('Error fetching recipe details:', error);
+                  setSelectedRecipe(recipe);
+                  setShowModal(true);
+                }
               }}
               className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group cursor-pointer"
               style={{ animationDelay: `${index * 0.1}s` }}

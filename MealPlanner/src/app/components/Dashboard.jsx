@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Calendar, Lightbulb, Package, TrendingDown, Clock, Star, Sparkles, ArrowRight } from 'lucide-react';
+import { Leaf, Calendar, Lightbulb, Package, Clock, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Lottie from 'lottie-react';
 import FoodGirlAnimation from '../../assets/FoodGirl.json';
 import { getPantryItems } from '../../api/pantryApi';
@@ -12,8 +12,7 @@ const Dashboard = ({ onNavigate }) => {
     totalPantryItems: 0,
     expiringItems: 0,
     savedRecipesCount: 0,
-    mealPlansCount: 0,
-    wasteReduction: 0
+    mealPlansCount: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -48,14 +47,11 @@ const Dashboard = ({ onNavigate }) => {
         return diffDays <= 7 && diffDays >= 0;
       });
 
-      const wasteReduction = pantryItems.length > 0 ? Math.min(Math.round((savedRecipes.length / pantryItems.length) * 100), 100) : 0;
-
       setDashboardData({
         totalPantryItems: pantryItems.length,
         expiringItems: expiringItems.length,
         savedRecipesCount: savedRecipes.length,
-        mealPlansCount: mealPlans.length,
-        wasteReduction
+        mealPlansCount: mealPlans.length
       });
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -65,7 +61,6 @@ const Dashboard = ({ onNavigate }) => {
   };
 
   const stats = [
-    { label: 'Food Waste Reduced', value: loading ? '...' : `${dashboardData.wasteReduction}%`, icon: TrendingDown, color: '#10b981' },
     { label: 'Meals Planned', value: loading ? '...' : dashboardData.mealPlansCount.toString(), icon: Calendar, color: '#3b82f6' },
     { label: 'Recipes Saved', value: loading ? '...' : dashboardData.savedRecipesCount.toString(), icon: Star, color: '#f59e0b' },
     { label: 'Pantry Items', value: loading ? '...' : dashboardData.totalPantryItems.toString(), icon: Package, color: '#8b5cf6' },

@@ -3,6 +3,7 @@ import { Lightbulb, Clock, Users, Zap, RefreshCw, Heart, ChefHat, Loader2, Searc
 import Header from './Header';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import RecipeDetailModal from './RecipeDetailModal';
+import Snackbar from './Snackbar';
 import { getAuth } from 'firebase/auth';
 import { getRandomRecipes, searchRecipes, getRecipesByIngredients, getRecipeDetails, getRecipesByType } from '../../api/spoonacularApi';
 import { saveRecipe } from '../../api/savedRecipesApi';
@@ -21,6 +22,8 @@ const RecipeSuggestions = () => {
     totalItems: 0,
     potentialSavings: 0
   });
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   useEffect(() => {
     loadCategories();
@@ -30,6 +33,7 @@ const RecipeSuggestions = () => {
 
   useEffect(() => {
     loadRecipes();
+    loadPantryInsights();
   }, [selectedCategory]);
 
   const loadPantryInsights = async () => {
@@ -49,7 +53,7 @@ const RecipeSuggestions = () => {
         const expiryDate = new Date(item.expiry_date);
         const diffTime = expiryDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays <= 7 && diffDays >= 0;
+        return diffDays <= 5 && diffDays >= 0;
       });
 
       const potentialSavings = expiringItems.length * 3.5;
@@ -105,7 +109,32 @@ const RecipeSuggestions = () => {
       let data;
       switch (selectedCategory) {
         case 'pantry-based':
-          data = await getRecipesByIngredients('tomato,onion,garlic', 12);
+          // Get expiring items from pantry for recipe suggestions
+          const auth = getAuth();
+          const user = auth.currentUser;
+          if (user) {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+            const userId = userData?.user_id || user.uid;
+            const pantryItems = await getPantryItems(userId);
+            
+            const today = new Date();
+            const expiringItems = pantryItems.filter(item => {
+              if (!item.expiry_date) return false;
+              const expiryDate = new Date(item.expiry_date);
+              const diffTime = expiryDate.getTime() - today.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return diffDays <= 5 && diffDays >= 0;
+            });
+            
+            // Use expiring items for recipe search, fallback to common ingredients
+            const ingredients = expiringItems.length > 0 
+              ? expiringItems.map(item => item.item_name).join(',')
+              : 'tomato,onion,garlic';
+            
+            data = await getRecipesByIngredients(ingredients, 12);
+          } else {
+            data = await getRecipesByIngredients('tomato,onion,garlic', 12);
+          }
           break;
         case 'quick':
           data = await searchRecipes('quick easy', 12, 20);
@@ -177,18 +206,21 @@ const RecipeSuggestions = () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user_data'));
       if (!userData?.user_id) {
-        alert('Please log in to save recipes');
+        setSnackbarMessage('Please log in to save recipes');
+        setShowSnackbar(true);
         return;
       }
 
       await saveRecipe(userData.user_id, recipe);
-      alert('Recipe saved successfully!');
+      setSnackbarMessage('Recipe saved successfully!');
+      setShowSnackbar(true);
     } catch (error) {
       if (error.message.includes('already saved')) {
-        alert('Recipe is already in your saved recipes!');
+        setSnackbarMessage('Recipe is already in your saved recipes!');
       } else {
-        alert('Failed to save recipe. Please try again.');
+        setSnackbarMessage('Failed to save recipe. Please try again.');
       }
+      setShowSnackbar(true);
     }
   };
 
@@ -217,31 +249,60 @@ const RecipeSuggestions = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered Insights</h3>
               <p className="text-gray-700 mb-3">
-                Based on your pantry analysis, you could save <strong>${pantryInsights.potentialSavings.toFixed(2)}</strong> and prevent 
-                food waste this week by using {pantryInsights.expiringItems.length > 0 ? 'expiring items' : 'your pantry items'}.
+                {selectedCategory === 'pantry-based' ? (
+                  pantryInsights.expiringItems.length > 0 ? (
+                    <>Based on your pantry analysis, you could save <strong>${pantryInsights.potentialSavings.toFixed(2)}</strong> and prevent food waste by using these expiring items.</>
+                  ) : (
+                    <>Your pantry has <strong>{pantryInsights.totalItems}</strong> items. Great job keeping your ingredients fresh!</>
+                  )
+                ) : selectedCategory === 'quick' ? (
+                  <>Quick recipes help you save time and reduce food waste. These meals can be prepared in 20 minutes or less.</>
+                ) : (
+                  <>Innovative recipes help you discover new ways to use your ingredients creatively and reduce waste.</>
+                )}
               </p>
               <div className="flex flex-wrap gap-3 text-sm">
-                {pantryInsights.expiringItems.length > 0 ? (
-                  pantryInsights.expiringItems.map((item, index) => {
-                    const categoryEmojis = {
-                      'Vegetables': '🥕',
-                      'Fruits': '🍌', 
-                      'Grains': '🍞',
-                      'Dairy': '🥛',
-                      'Proteins': '🥩',
-                      'Spices': '🌿'
-                    };
-                    const emoji = categoryEmojis[item.category?.[0]] || '🥫';
-                    return (
-                      <span key={index} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-                        {emoji} {item.item_name} expiring soon
-                      </span>
-                    );
-                  })
+                {selectedCategory === 'pantry-based' ? (
+                  pantryInsights.expiringItems.length > 0 ? (
+                    pantryInsights.expiringItems.map((item, index) => {
+                      const categoryEmojis = {
+                        'Vegetables': '🥕',
+                        'Fruits': '🍌', 
+                        'Grains': '🍞',
+                        'Dairy': '🥛',
+                        'Proteins': '🥩',
+                        'Spices': '🌿'
+                      };
+                      const emoji = categoryEmojis[item.category?.[0]] || '🥫';
+                      return (
+                        <span key={index} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
+                          {emoji} {item.item_name} expiring soon
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
+                      🌟 {pantryInsights.totalItems} items in your pantry
+                    </span>
+                  )
+                ) : selectedCategory === 'quick' ? (
+                  <>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+                      ⚡ Under 20 minutes
+                    </span>
+                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
+                      🕒 Time-saving recipes
+                    </span>
+                  </>
                 ) : (
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">
-                    🌟 {pantryInsights.totalItems} items in your pantry
-                  </span>
+                  <>
+                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">
+                      💡 Creative combinations
+                    </span>
+                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                      🎨 Unique flavors
+                    </span>
+                  </>
                 )}
               </div>
             </div>
@@ -324,15 +385,18 @@ const RecipeSuggestions = () => {
                           const auth = getAuth();
                           const user = auth.currentUser;
                           if (!user) {
-                            alert('Please login to save recipes');
+                            setSnackbarMessage('Please login to save recipes');
+                          setShowSnackbar(true);
                             return;
                           }
                           const details = await getRecipeDetails(recipe.id);
                           await saveRecipe(user.uid, details);
-                          alert('Recipe saved successfully!');
+                          setSnackbarMessage('Recipe saved successfully!');
+                          setShowSnackbar(true);
                         } catch (error) {
                           console.error('Error saving recipe:', error);
-                          alert('Failed to save recipe');
+                          setSnackbarMessage('Failed to save recipe');
+                          setShowSnackbar(true);
                         }
                       }}
                       className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-gray-600 hover:text-red-500 transition-colors duration-200"
@@ -417,6 +481,11 @@ const RecipeSuggestions = () => {
         {/* Voice Recipe Assistant */}
         <VoiceRecipeAssistant />
       </div>
+      <Snackbar 
+        isOpen={showSnackbar}
+        message={snackbarMessage}
+        onClose={() => setShowSnackbar(false)}
+      />
     </>
   );
 };

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Camera, CheckCircle, Edit3, Calendar, Trash2, StickyNote, X } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { addPantryItems, getScannedItems } from '../../api/pantryApi';
+import Snackbar from './Snackbar';
 
 const VALID_CATEGORIES = [
   'Proteins', 'Dairy', 'Vegetables', 'Grains',
@@ -15,6 +16,7 @@ const ReceiptScanner = () => {
   const [scannedItems, setScannedItems] = useState([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [receiptDetails, setReceiptDetails] = useState(null);
+  const [showSnackbar, setShowSnackbar] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -97,7 +99,7 @@ const ReceiptScanner = () => {
       }));
 
       const response = await addPantryItems(payload);
-      alert('Items added to pantry successfully!');
+      setShowSnackbar(true);
 
       setScannedItems([]);
       setReceiptDetails(null);
@@ -115,7 +117,8 @@ const ReceiptScanner = () => {
 
   if (showConfirmation) {
     return (
-      <div className="bg-white border border-gray-100 rounded-2xl">
+      <>
+        <div className="bg-white border border-gray-100 rounded-2xl">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="text-green-600" size={20} />
@@ -239,19 +242,26 @@ const ReceiptScanner = () => {
             </button>
           </div>
         </div>
-      </div>
+        </div>
+        <Snackbar 
+          isOpen={showSnackbar}
+          message="Items added successfully!"
+          onClose={() => setShowSnackbar(false)}
+        />
+      </>
     );
   }
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-center gap-2 mb-2">
-          <Camera size={20} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">Quick Add from Receipt</h3>
+    <>
+      <div className="bg-white border border-gray-100 rounded-2xl">
+        <div className="p-6 border-b border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <Camera size={20} className="text-gray-700" />
+            <h3 className="text-xl font-semibold text-gray-900">Quick Add from Receipt</h3>
+          </div>
+          <p className="text-gray-600">Scan your grocery receipt to instantly add items to your pantry</p>
         </div>
-        <p className="text-gray-600">Scan your grocery receipt to instantly add items to your pantry</p>
-      </div>
       <div className="p-6">
         {isScanning ? (
           <div className="text-center py-12">
@@ -323,7 +333,13 @@ const ReceiptScanner = () => {
           </>
         )}
       </div>
-    </div>
+      </div>
+      <Snackbar 
+        isOpen={showSnackbar}
+        message="Items added successfully!"
+        onClose={() => setShowSnackbar(false)}
+      />
+    </>
   );
 };
 

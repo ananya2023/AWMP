@@ -1,12 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, ChevronDown } from 'lucide-react';
-import { updateUserProfile } from '../../api/userApi'; // Adjust path accordingly
+import { updateUserProfile, getUserProfile } from '../../api/userApi'; // Adjust path accordingly
+import Snackbar from './Snackbar';
 
 const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free'];
 const ALLERGIES_OPTIONS = ['Nuts', 'Gluten', 'Dairy', 'Seafood', 'Eggs', 'Soy'];
 
 const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
   const [formData, setFormData] = useState({ ...userData });
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchUserProfile();
+    }
+  }, [isOpen]);
+
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (userData?.user_id) {
+        const profile = await getUserProfile(userData.user_id);
+        setFormData(profile.data || profile);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -43,8 +67,8 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
         console.log('Profile Updated:', response);
 
         onSave(formData); // Update local state in parent (Header)
-        alert('Profile updated successfully!');
-        onClose();
+        setShowSnackbar(true);
+        setTimeout(() => onClose(), 1500);
     } catch (error) {
         console.error('Error updating profile:', error);
         alert(error.message);
@@ -55,19 +79,25 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">Loading profile...</div>
+            </div>
+          ) : (
           <div className="space-y-6">
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -204,6 +234,7 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
               </select>
             </div>
           </div>
+          )}
         </div>
 
         <div className="flex gap-3 p-6 border-t border-gray-200">
@@ -220,8 +251,14 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
             Save Changes
           </button>
         </div>
+        </div>
       </div>
-    </div>
+      <Snackbar 
+        isOpen={showSnackbar}
+        message="Profile updated successfully!"
+        onClose={() => setShowSnackbar(false)}
+      />
+    </>
   );
 };
 

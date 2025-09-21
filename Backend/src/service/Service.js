@@ -2,7 +2,7 @@ const db = require('../config/firebase');
 
 const VALID_CATEGORIES = [
   'Proteins', 'Dairy', 'Vegetables', 'Grains', 
-  'Canned Goods', 'Spices', 'Condiments', 'Gluten'
+  'Canned Goods', 'Spices', 'Condiments', 'Gluten' , 'Fruits'
 ];
 
 const VALID_UNITS = ['grams', 'ml', 'pieces','Dozen'];
@@ -122,6 +122,14 @@ const { fileToGenerativePart, model } = require('../utils/geminiHelper'); // Adj
 exports.processReceiptImage = async (imagePath, mimeType) => {
   try {
     console.log(`Processing image with Gemini 1.5 Pro: ${imagePath}`);
+    
+    // Check if file exists before processing
+    try {
+      await fs.access(imagePath);
+    } catch (accessError) {
+      throw new Error(`File not found: ${imagePath}`);
+    }
+    
     const imagePart = await fileToGenerativePart(imagePath, mimeType);
 
    const prompt = `
@@ -179,7 +187,13 @@ exports.processReceiptImage = async (imagePath, mimeType) => {
     throw error;
   } finally {
     // Always clean up file
-    await fs.unlink(imagePath);
+    try {
+      await fs.unlink(imagePath);
+      console.log(`Successfully deleted file: ${imagePath}`);
+    } catch (unlinkError) {
+      console.warn(`Failed to delete file ${imagePath}:`, unlinkError.message);
+      // Don't throw error for cleanup failure
+    }
   }
 };
 

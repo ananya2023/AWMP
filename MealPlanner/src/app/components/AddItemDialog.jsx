@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Calendar, ImagePlus, X } from 'lucide-react';
 import { addPantryItems } from '../../api/pantryApi';
+import Snackbar from './Snackbar';
 
 const CATEGORIES = [
   { id: 'Proteins', label: 'Proteins', emoji: '🥩', image: 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=150' },
@@ -24,6 +25,7 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
   const [categories, setCategories] = useState([]);
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [showSnackbar, setShowSnackbar] = useState(false);
 
   const handleAdd = async () => {
     if (!itemName || !quantity || !unit || !expiryDate || categories.length === 0) {
@@ -59,6 +61,9 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
       setCategories([]);
       setNotes('');
       setImageUrl('');
+
+      // Show success snackbar
+      setShowSnackbar(true);
 
       if (onItemsAdded) onItemsAdded();
       if (!embedded) onClose();
@@ -240,15 +245,31 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
   );
 
   if (embedded) {
-    return dialogContent;
+    return (
+      <>
+        {dialogContent}
+        <Snackbar 
+          isOpen={showSnackbar}
+          message="Item added successfully!"
+          onClose={() => setShowSnackbar(false)}
+        />
+      </>
+    );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
-        {dialogContent}
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
+          {dialogContent}
+        </div>
       </div>
-    </div>
+      <Snackbar 
+        isOpen={showSnackbar}
+        message="Item added successfully!"
+        onClose={() => setShowSnackbar(false)}
+      />
+    </>
   );
 };
 
