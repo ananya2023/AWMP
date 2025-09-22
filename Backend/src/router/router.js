@@ -4,6 +4,7 @@ const pantryController = require('../controller/Controller');
 
 const notificationController = require('../controller/notificationController');
 const profileController = require('../controller/profileController');
+const recipeBooksRouter = require('./recipeBooksRouter');
 const multer = require('multer');
 const path = require('path');
 
@@ -82,5 +83,8 @@ router.put('/meal-plans/:user_id/:meal_plan_id', pantryController.updateMealPlan
 
 // DELETE /api/meal-plans/:user_id/:meal_plan_id - Delete a meal plan
 router.delete('/meal-plans/:user_id/:meal_plan_id', pantryController.deleteMealPlan);
+
+// Use recipe books routes
+router.use('/', recipeBooksRouter);
 
 module.exports = router;

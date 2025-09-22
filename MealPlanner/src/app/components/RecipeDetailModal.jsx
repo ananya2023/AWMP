@@ -27,11 +27,11 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
           <div className="flex items-center space-x-6 mb-6">
             <div className="flex items-center space-x-2">
               <Clock className="h-5 w-5 text-gray-500" />
-              <span>{recipe.readyInMinutes || recipe.cookTime || 'N/A'} min</span>
+              <span>{recipe.readyInMinutes || recipe.ready_in_minutes || recipe.prep_time || recipe.cookTime || 'N/A'} min</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-gray-500" />
-              <span>{recipe.servings} servings</span>
+              <span>{recipe.servings || 'N/A'} servings</span>
             </div>
             <div className="flex items-center space-x-2">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
@@ -44,6 +44,11 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
               <ul className="space-y-2">
                 {recipe.extendedIngredients?.map((ingredient, index) => (
+                  <li key={index} className="text-gray-700 flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    <span>{ingredient.amount} {ingredient.unit} {ingredient.name}</span>
+                  </li>
+                )) || recipe.ingredients?.map((ingredient, index) => (
                   <li key={index} className="text-gray-700 flex items-center space-x-2">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                     <span>{ingredient.amount} {ingredient.unit} {ingredient.name}</span>
@@ -69,10 +74,24 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
                     </span>
                     <p className="text-sm">{step.step}</p>
                   </div>
+                )) || recipe.steps?.map((step, index) => (
+                  <div key={index} className="flex gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <p className="text-sm">{step}</p>
+                  </div>
                 )) || (
                   <div dangerouslySetInnerHTML={{ __html: recipe.instructions || 'No instructions available.' }} />
                 )}
               </div>
+              
+              {recipe.notes && (
+                <div className="mt-4">
+                  <h4 className="text-md font-semibold text-gray-900 mb-2">Notes</h4>
+                  <p className="text-gray-700 text-sm">{recipe.notes}</p>
+                </div>
+              )}
               
               {recipe.sourceUrl && (
                 <div className="mt-4">

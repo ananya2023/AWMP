@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut } from 'lucide-react';
+import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import SavedRecipes from './SavedRecipes';
@@ -172,10 +172,10 @@ const Header = () => {
             <div className="flex items-center space-x-3 group cursor-pointer">
               <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl shadow-lg group-hover:shadow-emerald-200 group-hover:scale-110 transition-all duration-300 relative overflow-hidden">
                 <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                <Leaf className="h-6 w-6 text-white relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+                <ChefHat className="h-6 w-6 text-white relative z-10 group-hover:rotate-12 transition-transform duration-300" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors duration-300">Antiwaste</h1>
+                <h1 className="text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors duration-300">Cooksy</h1>
                 <p className="text-xs text-emerald-600 font-medium group-hover:text-emerald-700 transition-colors duration-300">Meal Planner</p>
               </div>
             </div>
@@ -296,10 +296,10 @@ const Header = () => {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-2 rounded-xl">
-                    <Leaf className="h-6 w-6 text-white" />
+                    <ChefHat className="h-6 w-6 text-white" />
                   </div>
                   <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-600 bg-clip-text text-transparent">
-                    Antiwaste
+                    Cooksy
                   </h2>
                 </div>
                 <button 

@@ -1,7 +1,7 @@
 // src/api/pantry.js
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 'http://localhost:3001/api/awmp';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 'http://localhost:3008/api/awmp';
 
 export const createUser = async (itemData) => {
   try {

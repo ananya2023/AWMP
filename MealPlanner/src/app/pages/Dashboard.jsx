@@ -12,13 +12,13 @@ const Dashboard = () => {
         navigate('/recipes');
         break;
       case 'mealPlans':
-        // Navigate to meal plans when route is created
+        navigate('/meal-plans');
         break;
       case 'recipeSuggestions':
         navigate('/suggestions');
         break;
       case 'pantry':
-        // Navigate to pantry when route is created
+        navigate('/pantry');
         break;
       default:
         break;

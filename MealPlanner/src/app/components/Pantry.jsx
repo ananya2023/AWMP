@@ -456,7 +456,7 @@ const Pantry = () => {
       </div>
 
       {/* Stats Summary */}
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center space-x-3">
             <div className="bg-emerald-100 p-3 rounded-lg">
@@ -495,17 +495,7 @@ const Pantry = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center space-x-3">
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">92%</p>
-              <p className="text-sm text-gray-600">Utilization Rate</p>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <AddItemDialog

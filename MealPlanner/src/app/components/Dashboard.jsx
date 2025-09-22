@@ -61,9 +61,9 @@ const Dashboard = ({ onNavigate }) => {
   };
 
   const stats = [
-    { label: 'Meals Planned', value: loading ? '...' : dashboardData.mealPlansCount.toString(), icon: Calendar, color: '#3b82f6' },
-    { label: 'Recipes Saved', value: loading ? '...' : dashboardData.savedRecipesCount.toString(), icon: Star, color: '#f59e0b' },
-    { label: 'Pantry Items', value: loading ? '...' : dashboardData.totalPantryItems.toString(), icon: Package, color: '#8b5cf6' },
+    { label: 'Meals Planned', value: loading ? '...' : dashboardData.mealPlansCount.toString(), icon: Calendar, color: '#3b82f6', navigateTo: 'mealPlans' },
+    { label: 'Recipes Saved', value: loading ? '...' : dashboardData.savedRecipesCount.toString(), icon: Star, color: '#f59e0b', navigateTo: 'savedRecipes' },
+    { label: 'Pantry Items', value: loading ? '...' : dashboardData.totalPantryItems.toString(), icon: Package, color: '#8b5cf6', navigateTo: 'pantry' },
   ];
 
   const quickActions = [
@@ -143,7 +143,11 @@ const Dashboard = ({ onNavigate }) => {
         {stats.map((stat, index) => {
           const IconComponent = stat.icon;
           return (
-            <div key={index} className="bg-white p-6 border border-gray-100 rounded-2xl transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl group">
+            <div 
+              key={index} 
+              onClick={() => stat.navigateTo && onNavigate(stat.navigateTo)}
+              className="bg-white p-6 border border-gray-100 rounded-2xl transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-xl group"
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 font-medium mb-1">
@@ -201,12 +205,12 @@ const Dashboard = ({ onNavigate }) => {
         })}
       </div>
 
-      {/* Recent Activity */}
+      {/* What You Can Do */}
       <div className="bg-white p-6 border border-gray-100 rounded-2xl">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles size={20} className="text-emerald-600 animate-pulse" />
           <h3 className="text-xl font-semibold text-gray-900">
-            Recent Activity
+            What You Can Do
           </h3>
         </div>
         <div>
