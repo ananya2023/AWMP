@@ -5,6 +5,7 @@ const pantryController = require('../controller/Controller');
 const notificationController = require('../controller/notificationController');
 const profileController = require('../controller/profileController');
 const recipeBooksRouter = require('./recipeBooksRouter');
+const categoriesRouter = require('./categoriesRouter');
 const multer = require('multer');
 const path = require('path');
 
@@ -86,5 +87,8 @@ router.delete('/meal-plans/:user_id/:meal_plan_id', pantryController.deleteMealP
 
 // Use recipe books routes
 router.use('/', recipeBooksRouter);
+
+// Use categories routes
+router.use('/categories', categoriesRouter);
 
 module.exports = router;

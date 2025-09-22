@@ -19,6 +19,7 @@ const Pantry = () => {
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userCategories, setUserCategories] = useState([]);
 
   const handleDeleteItem = async (itemId) => {
     if (!confirm('Are you sure you want to delete this item?')) {
@@ -144,6 +145,10 @@ const Pantry = () => {
     fetchPantryItems();
   }, []);
 
+  useEffect(() => {
+    loadUserCategories();
+  }, [pantryItems]); // Reload categories when items change
+
   const mockItems = [
     {
       id: 1,
@@ -237,13 +242,45 @@ const Pantry = () => {
 
   const displayItems = pantryItems;
 
-  const categories = [
-    { id: 'all', label: 'All Items', count: displayItems.length },
+  // Standard categories - match AddItemDialog categories
+  const standardCategories = [
+    { id: 'proteins', label: 'Proteins', count: displayItems.filter(item => item.category === 'proteins').length },
+    { id: 'dairy', label: 'Dairy', count: displayItems.filter(item => item.category === 'dairy').length },
     { id: 'vegetables', label: 'Vegetables', count: displayItems.filter(item => item.category === 'vegetables').length },
     { id: 'fruits', label: 'Fruits', count: displayItems.filter(item => item.category === 'fruits').length },
     { id: 'grains', label: 'Grains', count: displayItems.filter(item => item.category === 'grains').length },
-    { id: 'dairy', label: 'Dairy', count: displayItems.filter(item => item.category === 'dairy').length },
+    { id: 'canned goods', label: 'Canned Goods', count: displayItems.filter(item => item.category === 'canned goods').length },
+    { id: 'spices', label: 'Spices', count: displayItems.filter(item => item.category === 'spices').length },
+    { id: 'condiments', label: 'Condiments', count: displayItems.filter(item => item.category === 'condiments').length },
+    { id: 'gluten', label: 'Gluten', count: displayItems.filter(item => item.category === 'gluten').length },
   ];
+
+  // User-specific categories
+  const userCategoryButtons = userCategories.map(cat => ({
+    id: cat.toLowerCase(),
+    label: cat,
+    count: displayItems.filter(item => item.category === cat.toLowerCase()).length
+  }));
+
+  const categories = [
+    { id: 'all', label: 'All Items', count: displayItems.length },
+    ...standardCategories,
+    ...userCategoryButtons,
+  ];
+
+  const loadUserCategories = () => {
+    const userData = JSON.parse(localStorage.getItem('user_data'));
+    if (userData?.user_id) {
+      const saved = localStorage.getItem(`user_categories_${userData.user_id}`);
+      if (saved) {
+        setUserCategories(JSON.parse(saved));
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadUserCategories();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -270,9 +307,9 @@ const Pantry = () => {
   };
 
   const filteredItems = displayItems.filter(item => {
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    // const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesSearch;
   });
 
   const urgentItems = displayItems.filter(item => 
@@ -349,7 +386,7 @@ const Pantry = () => {
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />
         </div>
-        <div className="flex gap-2 overflow-x-auto">
+        {/* <div className="flex gap-2 overflow-x-auto">
           {categories.map((category) => (
             <button
               key={category.id}
@@ -363,7 +400,7 @@ const Pantry = () => {
               {category.label} ({category.count})
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {/* Pantry Grid */}

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, ImagePlus, X } from 'lucide-react';
 import { addPantryItems } from '../../api/pantryApi';
+import { getUserCategories, addUserCategory } from '../../api/categoriesApi';
 import Snackbar from './Snackbar';
 
 const CATEGORIES = [
@@ -26,6 +27,42 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [userCategories, setUserCategories] = useState([]);
+  const [showAddCategoryInput, setShowAddCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  useEffect(() => {
+    loadUserCategories();
+  }, []);
+
+  const loadUserCategories = async () => {
+    const userData = JSON.parse(localStorage.getItem('user_data'));
+    if (userData?.user_id) {
+      try {
+        const response = await getUserCategories(userData.user_id);
+        setUserCategories(response.data);
+      } catch (error) {
+        console.error('Failed to load user categories:', error);
+      }
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (newCategoryName.trim() && !userCategories.includes(newCategoryName.trim())) {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      try {
+        const response = await addUserCategory(userData.user_id, newCategoryName.trim());
+        setUserCategories(response.data);
+        setCategories([...categories, newCategoryName.trim()]);
+        setNewCategoryName('');
+        setShowAddCategoryInput(false);
+      } catch (error) {
+        console.error('Failed to add category:', error);
+      }
+    }
+  };
+
+  const allCategories = [...CATEGORIES, ...userCategories.map(cat => ({ id: cat, label: cat, emoji: '📁' }))];
 
   const handleAdd = async () => {
     if (!itemName || !quantity || !unit || !expiryDate || categories.length === 0) {
@@ -139,7 +176,7 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
                 Categories *
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                {CATEGORIES.map((cat) => (
+                {allCategories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -160,11 +197,51 @@ const AddItemDialog = ({ isOpen, onClose, onItemsAdded, embedded = false }) => {
                     <div className="text-xs font-medium">{cat.label}</div>
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setShowAddCategoryInput(true)}
+                  className="p-3 rounded-xl transition-all duration-200 text-center border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-600"
+                >
+                  <div className="text-2xl mb-1">+</div>
+                  <div className="text-xs font-medium">Add Category</div>
+                </button>
               </div>
+              
+              {showAddCategoryInput && (
+                <div className="mb-4 p-3 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="Category name"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCategory}
+                      className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddCategoryInput(false);
+                        setNewCategoryName('');
+                      }}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
               {categories.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {categories.map((catId) => {
-                    const cat = CATEGORIES.find(c => c.id === catId);
+                    const cat = allCategories.find(c => c.id === catId);
                     return (
                       <span key={catId} className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm rounded-full flex items-center gap-1">
                         {cat?.emoji} {cat?.label}
