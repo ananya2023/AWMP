@@ -6,6 +6,10 @@ const getRecipesByIngredients = async (req, res) => {
   try {
     const { ingredients } = req.body;
     
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      return res.status(400).json({ error: 'Ingredients array is required' });
+    }
+    
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `Generate 10 detailed recipes using these ingredients: ${ingredients.join(', ')}. 
     Return ONLY a JSON array with this exact structure for each recipe:

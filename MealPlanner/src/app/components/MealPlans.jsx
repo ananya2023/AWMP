@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save } from 'lucide-react';
 import { getMealPlans, saveMealPlan, updateMealPlan, deleteMealPlan } from '../../api/mealPlanApi';
 import { getSavedRecipes } from '../../api/savedRecipesApi';
@@ -23,6 +24,8 @@ const MealPlans = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [showSnackbar, setShowSnackbar] = useState(false);
 
   // Load saved recipes and existing meal plans
   useEffect(() => {
@@ -214,10 +217,15 @@ const MealPlans = () => {
         weekendComplexity: 'elaborate'
       });
       
-      setGeneratedMealPlan(intelligentPlan.mealPlan);
-      setIsSaved(false); // New plan is not saved yet
+      if (intelligentPlan && intelligentPlan.mealPlan) {
+        setGeneratedMealPlan(intelligentPlan.mealPlan);
+        setIsSaved(false);
+      } else {
+        console.error('No meal plan generated');
+      }
     } catch (error) {
       console.error('Error generating intelligent meal plan:', error);
+      alert('Failed to generate meal plan. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -277,6 +285,14 @@ const MealPlans = () => {
     setGeneratedMealPlan(updatedMealPlan);
     setEditingMeal(null);
     setIsSaved(false); // Mark as unsaved when edited
+  };
+
+  const handleDeleteMeal = (day, mealType) => {
+    const updatedMealPlan = { ...generatedMealPlan };
+    updatedMealPlan[day][mealType] = null;
+    
+    setGeneratedMealPlan(updatedMealPlan);
+    setIsSaved(false); // Mark as unsaved when meal is deleted
   };
 
   const handleSaveMealPlan = async () => {
@@ -342,30 +358,63 @@ const MealPlans = () => {
   const filteredRecipes = getSmartFilteredRecipes();
 
   const getTotalMealsPlanned = () => {
+    if (!generatedMealPlan) return 0;
+    
     let total = 0;
     days.forEach(day => {
-      const dayMeals = weeklyMeals[day];
-      mealTypes.forEach(mealType => {
-        if (dayMeals[mealType.id]) {
-          total++;
-        }
-      });
+      const dayMeals = generatedMealPlan[day];
+      if (dayMeals) {
+        mealTypes.forEach(mealType => {
+          if (dayMeals[mealType.id]) {
+            total++;
+          }
+        });
+      }
     });
     return total;
   };
 
   const getTotalMealsCompleted = () => {
+    if (!generatedMealPlan) return 0;
+    
     let total = 0;
     days.forEach(day => {
-      const dayMeals = weeklyMeals[day];
-      mealTypes.forEach(mealType => {
-        const meal = dayMeals[mealType.id];
-        if (meal && meal.status === 'completed') {
-          total++;
-        }
-      });
+      const dayMeals = generatedMealPlan[day];
+      if (dayMeals) {
+        mealTypes.forEach(mealType => {
+          const meal = dayMeals[mealType.id];
+          if (meal && meal.status === 'completed') {
+            total++;
+          }
+        });
+      }
     });
     return total;
+  };
+
+  const getAverageCookingTime = () => {
+    if (!generatedMealPlan) return '0 min';
+    
+    let totalMinutes = 0;
+    let mealCount = 0;
+    
+    days.forEach(day => {
+      const dayMeals = generatedMealPlan[day];
+      if (dayMeals) {
+        mealTypes.forEach(mealType => {
+          const meal = dayMeals[mealType.id];
+          if (meal && meal.cookTime) {
+            const minutes = parseInt(meal.cookTime.replace(/\D/g, '')) || 0;
+            totalMinutes += minutes;
+            mealCount++;
+          }
+        });
+      }
+    });
+    
+    if (mealCount === 0) return '0 min';
+    const average = Math.round(totalMinutes / mealCount);
+    return `${average} min`;
   };
 
   const getWeekNavigation = () => {
@@ -388,7 +437,12 @@ const MealPlans = () => {
   
   const getCurrentWeekRange = () => {
     const today = new Date();
-    const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Handle Sunday as 0
+    
+    const currentWeekStart = new Date(today);
+    currentWeekStart.setDate(today.getDate() + mondayOffset + (currentWeekOffset * 7));
+    
     const currentWeekEnd = new Date(currentWeekStart);
     currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
     
@@ -397,6 +451,63 @@ const MealPlans = () => {
     };
     
     return `${formatDate(currentWeekStart)} - ${formatDate(currentWeekEnd)}`;
+  };
+  
+  const handleWeekNavigation = async (direction) => {
+    const newOffset = currentWeekOffset + direction;
+    setCurrentWeekOffset(newOffset);
+    
+    // Clear current meal plan immediately
+    setGeneratedMealPlan(null);
+    setIsSaved(false);
+    
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + mondayOffset + (newOffset * 7));
+      const weekDate = weekStart.toISOString().split('T')[0];
+      
+      const existingPlan = mealPlans.find(plan => plan.date === weekDate);
+      if (existingPlan && existingPlan.meals) {
+        setGeneratedMealPlan(existingPlan.meals);
+        setIsSaved(true);
+      }
+    }
+  };
+  
+  const getHistoricalWeeks = () => {
+    if (!mealPlans || mealPlans.length === 0) return [];
+    
+    return mealPlans.map((plan) => {
+      const planDate = new Date(plan.date);
+      const weekEnd = new Date(planDate);
+      weekEnd.setDate(planDate.getDate() + 6);
+      
+      let mealsCount = 0;
+      if (plan.meals && typeof plan.meals === 'object') {
+        mealsCount = Object.values(plan.meals).reduce((total, day) => {
+          if (day && typeof day === 'object') {
+            return total + Object.values(day).filter(meal => meal !== null && meal !== undefined).length;
+          }
+          return total;
+        }, 0);
+      }
+      
+      return {
+        id: plan.id,
+        name: `${planDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`,
+        status: 'completed',
+        mealsPlanned: 21,
+        mealsCompleted: mealsCount,
+        wasteReduction: Math.floor(Math.random() * 20) + 70,
+        moneySaved: (Math.random() * 20 + 15).toFixed(2)
+      };
+    }).slice(0, 5);
   };
 
   if (loading) {
@@ -427,12 +538,11 @@ const MealPlans = () => {
         
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => setShowHistory(!showHistory)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 ${
-              showHistory
-                ? 'bg-blue-500 text-white shadow-md'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            onClick={() => {
+              setShowSnackbar(true);
+              setTimeout(() => setShowSnackbar(false), 3000);
+            }}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center space-x-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
           >
             <History className="h-4 w-4" />
             <span>View History</span>
@@ -440,7 +550,10 @@ const MealPlans = () => {
           
           {/* Week Navigation */}
           <div className="flex items-center space-x-2">
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+            <button 
+              onClick={() => handleWeekNavigation(-1)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
               <ChevronLeft className="h-5 w-5 text-gray-600" />
             </button>
             <select
@@ -452,7 +565,10 @@ const MealPlans = () => {
               <option value="current">Current Week</option>
               <option value="next">Next Week</option>
             </select>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+            <button 
+              onClick={() => handleWeekNavigation(1)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
               <ChevronRight className="h-5 w-5 text-gray-600" />
             </button>
           </div>
@@ -469,7 +585,7 @@ const MealPlans = () => {
           
           <div className="p-6">
             <div className="space-y-4">
-              {historicalWeeks.map((week, index) => (
+              {getHistoricalWeeks().map((week, index) => (
                 <div
                   key={week.id}
                   className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all duration-300 cursor-pointer group"
@@ -517,7 +633,7 @@ const MealPlans = () => {
           { label: 'This Week\'s Goal', value: '21/21', icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'Meals Planned', value: `${getTotalMealsPlanned()}/21`, icon: ChefHat, color: 'text-blue-600', bg: 'bg-blue-50' },
           { label: 'Completed', value: `${getTotalMealsCompleted()}`, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-          { label: 'Money Saved', value: '$32.50', icon: Zap, color: 'text-orange-600', bg: 'bg-orange-50' },
+          { label: 'Avg Cook Time', value: getAverageCookingTime(), icon: Zap, color: 'text-orange-600', bg: 'bg-orange-50' },
         ].map((stat, index) => (
           <div 
             key={index}
@@ -638,7 +754,12 @@ const MealPlans = () => {
                           <div className="text-xs text-gray-500">
                             {(() => {
                               const today = new Date();
-                              const weekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+                              const dayOfWeek = today.getDay();
+                              const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                              
+                              const weekStart = new Date(today);
+                              weekStart.setDate(today.getDate() + mondayOffset + (currentWeekOffset * 7));
+                              
                               const dayDate = new Date(weekStart);
                               dayDate.setDate(weekStart.getDate() + dayIndex);
                               return dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -707,6 +828,7 @@ const MealPlans = () => {
                                       <Edit3 className="h-3 w-3" />
                                     </button>
                                     <button 
+                                      onClick={() => handleDeleteMeal(day, mealType.id)}
                                       className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                                       title="Remove Meal"
                                     >
@@ -857,27 +979,7 @@ const MealPlans = () => {
       </div>
 
       {/* Weekly Insights */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-100">
-          <h4 className="font-semibold text-emerald-900 mb-4 flex items-center space-x-2">
-            <TrendingUp className="h-5 w-5" />
-            <span>This Week's Impact</span>
-          </h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-emerald-700">Food Saved:</span>
-              <span className="font-bold text-emerald-900">4.8 lbs</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-emerald-700">CO2 Prevented:</span>
-              <span className="font-bold text-emerald-900">6.2 lbs</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-emerald-700">Water Saved:</span>
-              <span className="font-bold text-emerald-900">18 gallons</span>
-            </div>
-          </div>
-        </div>
+      <div className="grid lg:grid-cols-2 gap-6">
 
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
           <h4 className="font-semibold text-blue-900 mb-4 flex items-center space-x-2">
@@ -886,16 +988,16 @@ const MealPlans = () => {
           </h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
+              <span className="text-blue-700">Meals Planned:</span>
+              <span className="font-bold text-blue-900">{getTotalMealsPlanned()} of 21</span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="text-blue-700">Meals Completed:</span>
-              <span className="font-bold text-blue-900">{getTotalMealsCompleted()} of 21</span>
+              <span className="font-bold text-blue-900">{getTotalMealsCompleted()}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-blue-700">Avg. Waste Reduction:</span>
-              <span className="font-bold text-blue-900">82%</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-blue-700">Next Meal:</span>
-              <span className="font-bold text-blue-900">Tonight</span>
+              <span className="text-blue-700">Avg Cook Time:</span>
+              <span className="font-bold text-blue-900">{getAverageCookingTime()}</span>
             </div>
           </div>
         </div>
@@ -941,6 +1043,22 @@ const MealPlans = () => {
         }}
         onSave={handleSaveEditedMeal}
       />
+      
+      {/* Coming Soon Snackbar */}
+      {showSnackbar && createPortal(
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg" style={{ zIndex: 10001 }}>
+          <div className="flex items-center space-x-2">
+            <span>Coming Soon!</span>
+            <button 
+              onClick={() => setShowSnackbar(false)}
+              className="ml-2 text-white hover:text-gray-200"
+            >
+              ×
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
