@@ -3,6 +3,7 @@ import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRig
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
+import { saveUserData } from '../../utils/userStorage';
 
 const AuthForm = () => {
   const [email, setEmail] = useState('');
@@ -19,11 +20,18 @@ const AuthForm = () => {
     setError('');
 
     try {
+      let userCredential;
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
       }
+      
+      saveUserData({
+        user_id: userCredential.user.uid,
+        email: userCredential.user.email
+      });
+      
       navigate('/dashboard');
     } catch (error) {
       setError(error.message);

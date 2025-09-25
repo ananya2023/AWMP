@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import GoogleButton from "./GoogleButton";
 import app from "../../firebase/firebase";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { saveUserData } from "../../utils/userStorage";
+import { getUser } from "../../api/userApi";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -21,12 +23,15 @@ const LoginForm = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      localStorage.setItem('user_data', JSON.stringify({
-        user_id: user.uid,
-        email: user.email,
-        displayName: user.displayName
-      }));
-      console.log('User logged in:', user);
+      
+      const response = await getUser(user.uid);
+      if (response && response.data) {
+        const { user_id, pantry_id } = response.data;
+        saveUserData({ user_id, pantry_id });
+      } else {
+        saveUserData({ user_id: user.uid, email: user.email });
+      }
+      
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);

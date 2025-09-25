@@ -1,20 +1,19 @@
 // src/api/pantry.js
 import axios from 'axios';
+import { getUserData } from '../utils/userStorage';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 'http://localhost:3008/api/awmp';
 
 
 export const addPantryItems = async (items) => {
-  const userData = JSON.parse(localStorage.getItem('user_data')); // Assuming user_id stored in localStorage
+  const userData = getUserData();
   if (!userData?.user_id) {
     throw new Error('User not logged in');
   }
 
-//   const user_id = !userData?.user_id
-
   const payload = {
-    user_id  :userData?.user_id,
-    items // Send array of items
+    user_id: userData.user_id,
+    items
   };
 
   console.log(payload)

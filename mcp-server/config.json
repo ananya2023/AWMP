@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "awmp-meal-planner": {
+      "command": "node",
+      "args": ["d:/projects/AWMP/mcp-server/server.js"],
+      "env": {}
+    }
+  }
+}
