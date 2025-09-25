@@ -479,7 +479,7 @@ const RecipeSuggestions = () => {
         />
 
         {/* Voice Recipe Assistant */}
-        <VoiceRecipeAssistant />
+        {/* <VoiceRecipeAssistant /> */}
       </div>
       <Snackbar 
         isOpen={showSnackbar}

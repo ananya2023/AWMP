@@ -129,7 +129,7 @@ const Pantry = () => {
           daysLeft,
           location: 'Pantry',
           status,
-          image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=100'
+          image: item.image_url || 'https://picsum.photos/300/200?random=1640777'
         };
       });
       
@@ -404,8 +404,22 @@ const Pantry = () => {
       </div>
 
       {/* Pantry Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredItems.map((item) => (
+      {filteredItems.length === 0 && !loading ? (
+        <div className="text-center py-12">
+          <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Your pantry is empty</h3>
+          <p className="text-gray-600 mb-6">Start by adding some items to track your ingredients</p>
+          <button 
+            onClick={() => setShowUnifiedDialog(true)}
+            className="px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors duration-200 flex items-center space-x-2 mx-auto"
+          >
+            <Plus className="h-5 w-5" />
+            <span>Add Your First Item</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredItems.map((item) => (
           <div
             key={item.id}
             className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group"
@@ -489,8 +503,9 @@ const Pantry = () => {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats Summary */}
       <div className="grid md:grid-cols-3 gap-6">

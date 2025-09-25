@@ -31,8 +31,9 @@ export const searchRecipes = async (query, number = 12, maxReadyTime = null) => 
 
 export const getRecipesByIngredients = async (ingredients, number = 12) => {
   try {
+    const encodedIngredients = encodeURIComponent(ingredients);
     const response = await fetch(
-      `${BASE_URL}/findByIngredients?apiKey=${SPOONACULAR_API_KEY}&ingredients=${ingredients}&number=${number}`
+      `${BASE_URL}/findByIngredients?apiKey=${SPOONACULAR_API_KEY}&ingredients=${encodedIngredients}&number=${number}`
     );
     const data = await response.json();
     return data;
