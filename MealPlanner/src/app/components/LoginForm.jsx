@@ -24,11 +24,18 @@ const LoginForm = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      const response = await getUser(user.uid);
-      if (response && response.data) {
-        const { user_id, pantry_id } = response.data;
-        saveUserData({ user_id, pantry_id });
-      } else {
+      try {
+        const response = await getUser(user.uid);
+        if (response && response.data) {
+          const { user_id, pantry_id } = response.data;
+          saveUserData({ user_id, pantry_id });
+          console.log('User data saved:', { user_id, pantry_id });
+        } else {
+          saveUserData({ user_id: user.uid, email: user.email });
+          console.log('Fallback user data saved:', { user_id: user.uid, email: user.email });
+        }
+      } catch (apiError) {
+        console.error('API error, using fallback:', apiError);
         saveUserData({ user_id: user.uid, email: user.email });
       }
       
