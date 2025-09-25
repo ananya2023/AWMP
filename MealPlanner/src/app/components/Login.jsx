@@ -1,35 +1,15 @@
 import React, { useState } from 'react';
-import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star, Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebase';
-import { useNavigate } from 'react-router-dom';
+import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star } from 'lucide-react';
 
-const AuthForm = () => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-      }
-      navigate('/dashboard');
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
+    console.log('Login attempt:', { email, password, isSignUp });
   };
 
   const stats = [
@@ -39,9 +19,10 @@ const AuthForm = () => {
   ];
 
   const features = [
+    'AI-powered meal planning',
     'Smart pantry management', 
     'Recipe recommendations',
-    'Save Money'
+    'Waste tracking & analytics'
   ];
 
   return (
@@ -64,7 +45,7 @@ const AuthForm = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  Cooksy
+                  AWMP
                 </h1>
                 <p className="text-sm text-gray-600">Smart Kitchen Meal Planner</p>
               </div>
@@ -80,7 +61,7 @@ const AuthForm = () => {
               </h2>
               
               <p className="text-xl text-gray-600 leading-relaxed">
-                Join thousands who've revolutionized their cooking with Personalised meal planning, 
+                Join thousands who've revolutionized their cooking with AI-powered meal planning, 
                 smart pantry management, and zero-waste solutions.
               </p>
 
@@ -94,21 +75,6 @@ const AuthForm = () => {
                     <span className="text-gray-700 font-medium">{feature}</span>
                   </div>
                 ))}
-              </div>
-
-              {/* Hero Image */}
-              <div className="relative mb-8">
-                <div className="w-full h-64 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl overflow-hidden shadow-2xl">
-                  <img 
-                    src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                    alt="Smart Kitchen" 
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <p className="text-sm font-medium">Smart Kitchen Technology</p>
-                  </div>
-                </div>
               </div>
 
               {/* Stats */}
@@ -152,11 +118,6 @@ const AuthForm = () => {
                     : 'Continue your culinary adventure'
                   }
                 </p>
-                {error && (
-                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                    {error}
-                  </div>
-                )}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -214,17 +175,10 @@ const AuthForm = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-4 rounded-2xl hover:from-emerald-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-4 rounded-2xl hover:from-emerald-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group"
                 >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                    </>
-                  )}
+                  <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
 
                 {/* Toggle Sign Up/In */}
@@ -257,4 +211,4 @@ const AuthForm = () => {
   );
 };
 
-export default AuthForm;
+export default Login;

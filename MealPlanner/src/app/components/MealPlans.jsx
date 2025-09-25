@@ -295,6 +295,17 @@ const MealPlans = () => {
     setIsSaved(false); // Mark as unsaved when meal is deleted
   };
 
+  const handleMarkCompleted = (day, mealType) => {
+    const updatedMealPlan = { ...generatedMealPlan };
+    const meal = updatedMealPlan[day][mealType];
+    
+    if (meal) {
+      meal.status = meal.status === 'completed' ? 'planned' : 'completed';
+      setGeneratedMealPlan(updatedMealPlan);
+      setIsSaved(false); // Mark as unsaved when status changes
+    }
+  };
+
   const handleSaveMealPlan = async () => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -820,6 +831,17 @@ const MealPlans = () => {
                                     </div>
                                   )}
                                   <div className="flex space-x-1">
+                                    <button 
+                                      onClick={() => handleMarkCompleted(day, mealType.id)}
+                                      className={`p-1 rounded transition-colors duration-200 ${
+                                        meal.status === 'completed'
+                                          ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                                          : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                                      }`}
+                                      title={meal.status === 'completed' ? 'Mark as Planned' : 'Mark as Completed'}
+                                    >
+                                      <CheckCircle className="h-3 w-3" />
+                                    </button>
                                     <button 
                                       onClick={() => handleEditMeal(day, mealType.id, meal)}
                                       className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
