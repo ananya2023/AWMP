@@ -1,10 +1,11 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 'http://localhost:3008/api/awmp';
 
-export const getMealPlans = async (userId, startDate, endDate) => {
+export const getMealPlans = async (userId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/meal-plans?user_id=${userId}&start_date=${startDate}&end_date=${endDate}`);
+    const response = await fetch(`${API_BASE_URL}/meal-plans?user_id=${userId}`);
     if (!response.ok) throw new Error('Failed to fetch meal plans');
-    return await response.json();
+    const result = await response.json();
+    return result.data || [];
   } catch (error) {
     console.error('Error fetching meal plans:', error);
     throw error;

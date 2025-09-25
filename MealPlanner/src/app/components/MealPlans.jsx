@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2 } from 'lucide-react';
+import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save } from 'lucide-react';
 import { getMealPlans, saveMealPlan, updateMealPlan, deleteMealPlan } from '../../api/mealPlanApi';
 import { getSavedRecipes } from '../../api/savedRecipesApi';
+import { getSmartRecipeSuggestions } from '../../api/smartMealPlanApi';
+import { generateIntelligentMealPlan } from '../../api/mcpMealPlanApi';
 import { getAuth } from 'firebase/auth';
+import EditMealModal from './EditMealModal';
 const MealPlans = () => {
   const [selectedWeek, setSelectedWeek] = useState('current');
   const [selectedDay, setSelectedDay] = useState(null);
@@ -13,9 +16,15 @@ const MealPlans = () => {
   const [showHistory, setShowHistory] = useState(false);
   const [mealPlans, setMealPlans] = useState([]);
   const [savedRecipes, setSavedRecipes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [generatedMealPlan, setGeneratedMealPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [editingMeal, setEditingMeal] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
-  // Load meal plans and saved recipes from API
+  // Load saved recipes and existing meal plans
   useEffect(() => {
     const loadData = async () => {
       const auth = getAuth();
@@ -28,9 +37,16 @@ const MealPlans = () => {
           getMealPlans(currentUser.uid),
           getSavedRecipes(currentUser.uid)
         ]);
-        console.log('Loaded saved recipes:', recipes);
         setMealPlans(plans);
         setSavedRecipes(recipes);
+        
+        // Check if there's a meal plan for today's week
+        const today = new Date().toISOString().split('T')[0];
+        const existingPlan = plans.find(plan => plan.date === today);
+        if (existingPlan && existingPlan.meals) {
+          setGeneratedMealPlan(existingPlan.meals);
+          setIsSaved(true);
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -52,162 +68,14 @@ const MealPlans = () => {
     moneySaved: 32.50,
   };
 
-  const weeklyMeals = {
-    monday: {
-      breakfast: {
-        name: 'Banana Bread French Toast',
-        time: '8:00 AM',
-        status: 'completed',
-        wasteReduced: 90,
-        ingredients: ['Stale bread', 'Overripe bananas', 'Eggs'],
-        image: 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '20 min',
-        servings: 2,
-        difficulty: 'Easy'
-      },
-      lunch: {
-        name: 'Leftover Grain Bowl',
-        time: '12:30 PM',
-        status: 'completed',
-        wasteReduced: 80,
-        ingredients: ['Leftover rice', 'Mixed vegetables', 'Dressing'],
-        image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '15 min',
-        servings: 1,
-        difficulty: 'Easy'
-      },
-      dinner: {
-        name: 'Zero-Waste Veggie Stir Fry',
-        time: '7:00 PM',
-        status: 'completed',
-        wasteReduced: 85,
-        ingredients: ['Carrots', 'Broccoli stems', 'Leftover rice'],
-        image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '25 min',
-        servings: 4,
-        difficulty: 'Easy'
-      }
-    },
-    tuesday: {
-      breakfast: {
-        name: 'Smoothie Bowl',
-        time: '8:00 AM',
-        status: 'completed',
-        wasteReduced: 75,
-        ingredients: ['Overripe fruits', 'Yogurt', 'Granola'],
-        image: 'https://images.pexels.com/photos/775032/pexels-photo-775032.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '10 min',
-        servings: 1,
-        difficulty: 'Easy'
-      },
-      lunch: {
-        name: 'Veggie Scrap Soup',
-        time: '1:00 PM',
-        status: 'completed',
-        wasteReduced: 95,
-        ingredients: ['Vegetable scraps', 'Broth', 'Herbs'],
-        image: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '30 min',
-        servings: 3,
-        difficulty: 'Medium'
-      },
-      dinner: {
-        name: 'Pasta with Wilted Greens',
-        time: '7:30 PM',
-        status: 'completed',
-        wasteReduced: 80,
-        ingredients: ['Spinach', 'Pasta', 'Garlic'],
-        image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '20 min',
-        servings: 4,
-        difficulty: 'Easy'
-      }
-    },
-    wednesday: {
-      breakfast: {
-        name: 'Overnight Oats',
-        time: '8:00 AM',
-        status: 'planned',
-        wasteReduced: 70,
-        ingredients: ['Oats', 'Milk', 'Fruit scraps'],
-        image: 'https://images.pexels.com/photos/775032/pexels-photo-775032.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '5 min',
-        servings: 1,
-        difficulty: 'Easy'
-      },
-      lunch: {
-        name: 'Leftover Soup',
-        time: '12:30 PM',
-        status: 'planned',
-        wasteReduced: 85,
-        ingredients: ['Yesterday\'s soup', 'Fresh herbs'],
-        image: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '5 min',
-        servings: 1,
-        difficulty: 'Easy'
-      },
-      dinner: {
-        name: 'Curry with Root Vegetables',
-        time: '7:00 PM',
-        status: 'planned',
-        wasteReduced: 90,
-        ingredients: ['Potato peels', 'Carrot tops', 'Onion scraps'],
-        image: 'https://images.pexels.com/photos/2474661/pexels-photo-2474661.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '35 min',
-        servings: 4,
-        difficulty: 'Medium'
-      }
-    },
-    thursday: {
-      breakfast: null,
-      lunch: null,
-      dinner: {
-        name: 'Fish with Root Veggie Chips',
-        time: '7:00 PM',
-        status: 'planned',
-        wasteReduced: 75,
-        ingredients: ['Fish', 'Potato peels', 'Herbs'],
-        image: 'https://images.pexels.com/photos/1640774/pexels-photo-1640774.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '30 min',
-        servings: 4,
-        difficulty: 'Medium'
-      }
-    },
-    friday: {
-      breakfast: null,
-      lunch: null,
-      dinner: {
-        name: 'Pizza with Leftover Toppings',
-        time: '7:30 PM',
-        status: 'planned',
-        wasteReduced: 70,
-        ingredients: ['Pizza dough', 'Leftover vegetables', 'Cheese'],
-        image: 'https://images.pexels.com/photos/1092730/pexels-photo-1092730.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '25 min',
-        servings: 4,
-        difficulty: 'Easy'
-      }
-    },
-    saturday: {
-      breakfast: null,
-      lunch: null,
-      dinner: {
-        name: 'Weekend Roast with Scraps',
-        time: '6:00 PM',
-        status: 'planned',
-        wasteReduced: 85,
-        ingredients: ['Chicken', 'Root vegetables', 'Herb stems'],
-        image: 'https://images.pexels.com/photos/775032/pexels-photo-775032.jpeg?auto=compress&cs=tinysrgb&w=300',
-        cookTime: '60 min',
-        servings: 6,
-        difficulty: 'Medium'
-      }
-    },
-    sunday: {
-      breakfast: null,
-      lunch: null,
-      dinner: null
-    },
+  const weeklyMeals = generatedMealPlan || {
+    monday: { breakfast: null, lunch: null, dinner: null },
+    tuesday: { breakfast: null, lunch: null, dinner: null },
+    wednesday: { breakfast: null, lunch: null, dinner: null },
+    thursday: { breakfast: null, lunch: null, dinner: null },
+    friday: { breakfast: null, lunch: null, dinner: null },
+    saturday: { breakfast: null, lunch: null, dinner: null },
+    sunday: { breakfast: null, lunch: null, dinner: null }
   };
 
   const historicalWeeks = [
@@ -315,13 +183,49 @@ const MealPlans = () => {
     { id: 'dinner', label: 'Dinner', time: '7:00 PM', icon: '🌙' }
   ];
 
-  const handlePlanMeal = (day, mealType) => {
+  const handlePlanMeal = async (day, mealType) => {
     setSelectedDay(day);
     setSelectedMealType(mealType);
     setShowMealSelector(true);
+    
+    // Get smart suggestions based on day type
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        const smartSuggestions = await getSmartRecipeSuggestions(currentUser.uid, day, mealType);
+        console.log(`Smart suggestions for ${day} ${mealType}:`, smartSuggestions);
+      } catch (error) {
+        console.error('Error getting smart suggestions:', error);
+      }
+    }
+  };
+
+  const handleGenerateIntelligentPlan = async () => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    
+    try {
+      setGenerating(true);
+      const intelligentPlan = await generateIntelligentMealPlan(currentUser.uid, {
+        servings: 2,
+        weekdayComplexity: 'quick',
+        weekendComplexity: 'elaborate'
+      });
+      
+      setGeneratedMealPlan(intelligentPlan.mealPlan);
+      setIsSaved(false); // New plan is not saved yet
+    } catch (error) {
+      console.error('Error generating intelligent meal plan:', error);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleSelectRecipe = async (recipe) => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
     if (!currentUser) return;
     
     try {
@@ -356,13 +260,86 @@ const MealPlans = () => {
     }
   };
 
-  const filteredRecipes = savedRecipes.filter(recipe => {
-    const matchesCategory = selectedCategory === 'all' || recipe.category === selectedCategory;
-    const matchesSearch = (recipe.title || recipe.name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (recipe.summary || recipe.description)?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesMealType = !selectedMealType || recipe.dishTypes?.includes(selectedMealType) || recipe.mealTypes?.includes(selectedMealType);
-    return matchesCategory && matchesSearch && matchesMealType;
-  });
+  const handleEditMeal = (day, mealType, meal) => {
+    setEditingMeal({ day, mealType, meal });
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEditedMeal = (updatedMeal) => {
+    if (!editingMeal) return;
+    
+    const updatedMealPlan = { ...generatedMealPlan };
+    updatedMealPlan[editingMeal.day][editingMeal.mealType] = {
+      ...editingMeal.meal,
+      ...updatedMeal
+    };
+    
+    setGeneratedMealPlan(updatedMealPlan);
+    setEditingMeal(null);
+    setIsSaved(false); // Mark as unsaved when edited
+  };
+
+  const handleSaveMealPlan = async () => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+    if (!currentUser || !generatedMealPlan) return;
+    
+    try {
+      setSaving(true);
+      
+      // Clean undefined values from meal plan
+      const cleanMealPlan = JSON.parse(JSON.stringify(generatedMealPlan, (key, value) => {
+        return value === undefined ? null : value;
+      }));
+      
+      // Save the entire meal plan
+      const mealPlanData = {
+        user_id: currentUser.uid,
+        meal_plan: {
+          date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+          meals: cleanMealPlan
+        }
+      };
+      
+      await saveMealPlan(mealPlanData);
+      
+      // Reload meal plans
+      const plans = await getMealPlans(currentUser.uid);
+      setMealPlans(plans);
+      setIsSaved(true);
+      
+      console.log('Meal plan saved successfully');
+      
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Smart filtering based on day type
+  const getSmartFilteredRecipes = () => {
+    const isWeekend = selectedDay && ['saturday', 'sunday'].includes(selectedDay);
+    const maxCookTime = isWeekend ? 90 : 30;
+    const preferredDifficulty = isWeekend ? ['medium', 'hard'] : ['easy', 'medium'];
+    
+    return savedRecipes.filter(recipe => {
+      const matchesCategory = selectedCategory === 'all' || recipe.category === selectedCategory;
+      const matchesSearch = (recipe.title || recipe.name)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (recipe.summary || recipe.description)?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesMealType = !selectedMealType || recipe.dishTypes?.includes(selectedMealType) || recipe.mealTypes?.includes(selectedMealType);
+      
+      // Smart filtering based on day type
+      const cookTime = recipe.readyInMinutes || parseInt(recipe.cookTime) || 30;
+      const difficulty = recipe.difficulty?.toLowerCase() || 'easy';
+      const matchesComplexity = showMealSelector ? 
+        (cookTime <= maxCookTime && preferredDifficulty.includes(difficulty)) : true;
+      
+      return matchesCategory && matchesSearch && matchesMealType && matchesComplexity;
+    });
+  };
+  
+  const filteredRecipes = getSmartFilteredRecipes();
 
   const getTotalMealsPlanned = () => {
     let total = 0;
@@ -392,12 +369,34 @@ const MealPlans = () => {
   };
 
   const getWeekNavigation = () => {
+    const today = new Date();
+    const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1)); // Monday
+    const currentWeekEnd = new Date(currentWeekStart);
+    currentWeekEnd.setDate(currentWeekStart.getDate() + 6); // Sunday
+    
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    };
+    
     const weeks = [
-      { id: 'previous', label: 'Previous Week', date: 'March 11 - 17' },
-      { id: 'current', label: 'Current Week', date: 'March 18 - 24' },
-      { id: 'next', label: 'Next Week', date: 'March 25 - 31' }
+      { id: 'previous', label: 'Previous Week', date: `${formatDate(new Date(currentWeekStart.getTime() - 7 * 24 * 60 * 60 * 1000))} - ${formatDate(new Date(currentWeekEnd.getTime() - 7 * 24 * 60 * 60 * 1000))}` },
+      { id: 'current', label: 'Current Week', date: `${formatDate(currentWeekStart)} - ${formatDate(currentWeekEnd)}` },
+      { id: 'next', label: 'Next Week', date: `${formatDate(new Date(currentWeekStart.getTime() + 7 * 24 * 60 * 60 * 1000))} - ${formatDate(new Date(currentWeekEnd.getTime() + 7 * 24 * 60 * 60 * 1000))}` }
     ];
     return weeks;
+  };
+  
+  const getCurrentWeekRange = () => {
+    const today = new Date();
+    const currentWeekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+    const currentWeekEnd = new Date(currentWeekStart);
+    currentWeekEnd.setDate(currentWeekStart.getDate() + 6);
+    
+    const formatDate = (date) => {
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    };
+    
+    return `${formatDate(currentWeekStart)} - ${formatDate(currentWeekEnd)}`;
   };
 
   if (loading) {
@@ -542,27 +541,85 @@ const MealPlans = () => {
         ))}
       </div>
 
+      {/* Generate Meal Plan CTA */}
+      {!generatedMealPlan && !loading && (
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-8 text-center border border-emerald-200">
+          <div className="max-w-md mx-auto">
+            <ChefHat className="h-16 w-16 text-emerald-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Ready to Plan Your Week?</h3>
+            <p className="text-gray-600 mb-6">Generate an AI-powered meal plan based on your pantry ingredients and preferences.</p>
+            <button 
+              onClick={handleGenerateIntelligentPlan}
+              disabled={generating}
+              className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 font-semibold flex items-center justify-center space-x-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <span>Generating Your Meal Plan...</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-6 h-6" />
+                  <span>Meal Plan This Week</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Weekly Calendar - Left Side */}
-        <div className="lg:col-span-2">
+        <div className={`lg:col-span-2 ${!generatedMealPlan && !loading ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {/* Calendar Header */}
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">March 18 - 24, 2024</h3>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-gray-700">Completed</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-gray-700">Planned</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                    <span className="text-gray-700">Not Planned</span>
+                <h3 className="text-xl font-semibold text-gray-900">{getCurrentWeekRange()}</h3>
+                <div className="flex items-center space-x-4">
+                  {generatedMealPlan && (
+                    <button
+                      onClick={handleSaveMealPlan}
+                      disabled={saving || isSaved}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 transition-all duration-200 ${
+                        isSaved
+                          ? 'bg-green-100 text-green-700 cursor-default'
+                          : 'bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50'
+                      }`}
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : isSaved ? (
+                        <>
+                          <CheckCircle className="h-4 w-4" />
+                          <span>Saved</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" />
+                          <span>Save Meal Plan</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <div className="flex items-center space-x-4 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-gray-700">Completed</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-gray-700">Planned</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                      <span className="text-gray-700">Not Planned</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -578,7 +635,15 @@ const MealPlans = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="text-center">
                           <div className="font-semibold text-gray-900">{dayNames[dayIndex]}</div>
-                          <div className="text-xs text-gray-500">Mar {18 + dayIndex}</div>
+                          <div className="text-xs text-gray-500">
+                            {(() => {
+                              const today = new Date();
+                              const weekStart = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+                              const dayDate = new Date(weekStart);
+                              dayDate.setDate(weekStart.getDate() + dayIndex);
+                              return dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                            })()}
+                          </div>
                         </div>
                         <div className="text-sm text-gray-600">
                           {mealTypes.filter(mealType => dayData[mealType.id]).length}/3 meals planned
@@ -615,16 +680,36 @@ const MealPlans = () => {
                                     alt={meal.name}
                                     className="w-full h-20 object-cover rounded-md"
                                   />
-                                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1">{meal.name}</h4>
+                                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1" title={meal.name}>{meal.name}</h4>
+                                  {meal.description && (
+                                    <p className="text-xs text-gray-600 line-clamp-2" title={meal.description}>{meal.description}</p>
+                                  )}
                                   <div className="flex items-center justify-between text-xs text-gray-600">
                                     <span>{meal.cookTime}</span>
                                     <span className="text-emerald-600 font-medium">{meal.wasteReduced}%</span>
                                   </div>
+                                  <div className="flex items-center justify-between text-xs text-gray-500">
+                                    <span>{meal.servings} servings</span>
+                                    <span className="capitalize">{meal.difficulty}</span>
+                                  </div>
+                                  {meal.nutritionInfo && (
+                                    <div className="text-xs text-gray-500">
+                                      <span>{meal.nutritionInfo.calories} cal</span>
+                                      {meal.nutritionInfo.protein && <span> • {meal.nutritionInfo.protein} protein</span>}
+                                    </div>
+                                  )}
                                   <div className="flex space-x-1">
-                                    <button className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200">
+                                    <button 
+                                      onClick={() => handleEditMeal(day, mealType.id, meal)}
+                                      className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors duration-200"
+                                      title="Edit Meal"
+                                    >
                                       <Edit3 className="h-3 w-3" />
                                     </button>
-                                    <button className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200">
+                                    <button 
+                                      className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                                      title="Remove Meal"
+                                    >
                                       <Trash2 className="h-3 w-3" />
                                     </button>
                                   </div>
@@ -651,7 +736,7 @@ const MealPlans = () => {
         </div>
 
         {/* Recipe Selector - Right Side */}
-        <div className="lg:col-span-1">
+        <div className={`lg:col-span-1 ${!generatedMealPlan && !loading ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-500 ${
             showMealSelector ? 'ring-2 ring-emerald-500 shadow-lg' : ''
           }`}>
@@ -663,10 +748,11 @@ const MealPlans = () => {
                 }
               </h3>
               <p className="text-gray-600 text-sm">
-                {showMealSelector 
-                  ? `Choose a recipe for your ${selectedMealType}` 
-                  : 'Quick access to your favorite recipes'
-                }
+                {showMealSelector ? (
+                  selectedDay && ['saturday', 'sunday'].includes(selectedDay) ? 
+                    `Weekend vibes: Showing elaborate recipes (up to 90 min)` :
+                    `Weekday mode: Showing quick recipes (up to 30 min)`
+                ) : 'Quick access to your favorite recipes'}
               </p>
             </div>
 
@@ -717,13 +803,23 @@ const MealPlans = () => {
                           {recipe.title || recipe.name}
                         </h4>
                         <p className="text-xs text-gray-600 mb-2 line-clamp-2">{recipe.summary || recipe.description}</p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-3 w-3" />
                             <span>{recipe.readyInMinutes ? `${recipe.readyInMinutes} min` : recipe.cookTime}</span>
                           </div>
                           <span className="text-emerald-600 font-medium">{recipe.wasteReduced || 75}%</span>
                         </div>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>{recipe.servings || 2} servings</span>
+                          <span className="capitalize">{recipe.difficulty || 'Easy'}</span>
+                        </div>
+                        {recipe.nutritionInfo && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            <span>{recipe.nutritionInfo.calories} cal</span>
+                            {recipe.nutritionInfo.protein && <span> • {recipe.nutritionInfo.protein}</span>}
+                          </div>
+                        )}
                       </div>
                     </div>
                     {showMealSelector && (
@@ -810,6 +906,18 @@ const MealPlans = () => {
             <span>Quick Actions</span>
           </h4>
           <div className="space-y-3">
+            <button 
+              onClick={handleGenerateIntelligentPlan}
+              disabled={generating}
+              className="w-full px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 text-sm font-medium flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4" />
+              )}
+              <span>{generating ? 'Generating...' : 'Meal Plan This Week'}</span>
+            </button>
             <button className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm font-medium">
               Generate Shopping List
             </button>
@@ -822,6 +930,17 @@ const MealPlans = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Meal Modal */}
+      <EditMealModal
+        meal={editingMeal?.meal}
+        isOpen={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingMeal(null);
+        }}
+        onSave={handleSaveEditedMeal}
+      />
     </div>
   );
 };
