@@ -6,6 +6,8 @@ import app from "../../firebase/firebase";
 import { getAuth, createUserWithEmailAndPassword  } from "firebase/auth";
 import { createUser } from "../../api/userApi";
 import { saveUserData } from "../../utils/userStorage";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../firebase/firebase";
 
 const SignUpForm = () => {
   const [email, setEmail] = useState("");
@@ -39,6 +41,29 @@ const SignUpForm = () => {
         if (response && response.data) {
           const user_data = response.data;
           const {user_id , pantry_id } = user_data?.user_data;
+
+          // Save to Firestore after successful backend response
+          console.log('DB object:', db);
+          if (db) {
+            try {
+              console.log('Saving user to Firestore:', user.uid);
+              const userDoc = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || null,
+                createdAt: new Date(),
+                isEmailVerified: user.emailVerified,
+                pantry_id: pantry_id
+              };
+              console.log('User document to save:', userDoc);
+              await setDoc(doc(db, "users", user.uid), userDoc);
+              console.log('User saved to Firestore successfully');
+            } catch (firestoreError) {
+              console.error('Error saving to Firestore:', firestoreError);
+            }
+          } else {
+            console.error('Firestore db is not initialized');
+          }
 
           saveUserData({
             user_id,

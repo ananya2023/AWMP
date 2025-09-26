@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star, Loader2 } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebase';
+import { auth, db } from '../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 import { saveUserData } from '../../utils/userStorage';
+import { doc, setDoc } from 'firebase/firestore';
+import { createUser } from '../../api/userApi';
 
 const AuthForm = () => {
   const [email, setEmail] = useState('');
@@ -23,14 +25,37 @@ const AuthForm = () => {
       let userCredential;
       if (isSignUp) {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Create user in backend
+        const userData = {
+          user_id: userCredential.user.uid,
+          email: userCredential.user.email,
+          isEmailVerified: userCredential.user.emailVerified
+        };
+        
+        const response = await createUser(userData);
+        
+        if (response && response.data) {
+          const { user_id, pantry_id } = response.data.user_data;
+          
+          // Save to Firestore
+          await setDoc(doc(db, "users", userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            createdAt: new Date(),
+            isEmailVerified: userCredential.user.emailVerified,
+            pantry_id: pantry_id
+          });
+          
+          saveUserData({ user_id, pantry_id });
+        }
       } else {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+        saveUserData({
+          user_id: userCredential.user.uid,
+          email: userCredential.user.email
+        });
       }
-      
-      saveUserData({
-        user_id: userCredential.user.uid,
-        email: userCredential.user.email
-      });
       
       navigate('/dashboard');
     } catch (error) {
