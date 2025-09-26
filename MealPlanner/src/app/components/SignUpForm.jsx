@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import GoogleButton from "./GoogleButton";
 import app from "../../firebase/firebase";
 import { getAuth, createUserWithEmailAndPassword  } from "firebase/auth";
@@ -9,6 +10,7 @@ import { saveUserData } from "../../utils/userStorage";
 const SignUpForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
   const auth = getAuth(app);
 
   const SignUpWithGoogle = () => {  
@@ -44,6 +46,7 @@ const SignUpForm = () => {
           });
 
           console.log("User data saved to localStorage");
+          navigate('/dashboard');
         } else {
           console.error("Failed to retrieve pantry_id from backend response");
         }

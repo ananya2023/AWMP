@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { X, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
+import Snackbar from './Snackbar';
 
 const UpdateStatusDialog = ({ isOpen, onClose, item, onUpdate }) => {
   const [newExpiryDate, setNewExpiryDate] = useState('');
   const [action, setAction] = useState('extend');
   const [consumedAmount, setConsumedAmount] = useState('');
+  const [snackbar, setSnackbar] = useState({ isOpen: false, message: '', type: 'error' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -12,6 +14,15 @@ const UpdateStatusDialog = ({ isOpen, onClose, item, onUpdate }) => {
     let updateData = {};
     
     if (action === 'extend' && newExpiryDate) {
+      const today = new Date().toISOString().split('T')[0];
+      if (newExpiryDate < today) {
+        setSnackbar({
+          isOpen: true,
+          message: 'Expiry date cannot be in the past. Please select a future date.',
+          type: 'error'
+        });
+        return;
+      }
       updateData.expiry_date = newExpiryDate;
     } else if (action === 'consumed') {
       await onUpdate(item.id, { consumed: true });
@@ -118,6 +129,7 @@ const UpdateStatusDialog = ({ isOpen, onClose, item, onUpdate }) => {
                 type="date"
                 value={newExpiryDate}
                 onChange={(e) => setNewExpiryDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 required
               />
@@ -163,6 +175,13 @@ const UpdateStatusDialog = ({ isOpen, onClose, item, onUpdate }) => {
           </div>
         </form>
       </div>
+      
+      <Snackbar
+        message={snackbar.message}
+        type={snackbar.type}
+        isOpen={snackbar.isOpen}
+        onClose={() => setSnackbar({ ...snackbar, isOpen: false })}
+      />
     </div>
   );
 };

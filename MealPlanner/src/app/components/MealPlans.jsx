@@ -32,20 +32,39 @@ const MealPlans = () => {
     const loadData = async () => {
       const auth = getAuth();
       const currentUser = auth.currentUser;
-      if (!currentUser) return;
+      if (!currentUser) {
+        console.log('No current user found');
+        return;
+      }
       
       try {
         setLoading(true);
+        console.log('Loading meal plans for user:', currentUser.uid);
         const [plans, recipes] = await Promise.all([
           getMealPlans(currentUser.uid),
           getSavedRecipes(currentUser.uid)
         ]);
+        console.log('Loaded meal plans:', plans);
+        console.log('Loaded recipes:', recipes);
         setMealPlans(plans);
         setSavedRecipes(recipes);
         
         // Check if there's a meal plan for today's week
         const today = new Date().toISOString().split('T')[0];
+        console.log('Looking for meal plan for date:', today);
+        console.log('Available meal plan dates:', plans.map(p => p.date));
         const existingPlan = plans.find(plan => plan.date === today);
+        console.log('Found existing plan:', existingPlan);
+        
+        // If no plan for today, show the most recent plan
+        if (!existingPlan && plans.length > 0) {
+          const mostRecent = plans[0];
+          console.log('Using most recent plan:', mostRecent);
+          if (mostRecent && mostRecent.meals) {
+            setGeneratedMealPlan(mostRecent.meals);
+            setIsSaved(true);
+          }
+        }
         if (existingPlan && existingPlan.meals) {
           setGeneratedMealPlan(existingPlan.meals);
           setIsSaved(true);
