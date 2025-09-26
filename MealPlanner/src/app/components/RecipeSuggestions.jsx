@@ -4,6 +4,7 @@ import Header from './Header';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import RecipeDetailModal from './RecipeDetailModal';
 import Snackbar from './Snackbar';
+import YouTubeVideoPanel from './YouTubeVideoPanel';
 import { getAuth } from 'firebase/auth';
 import { getRandomRecipes, searchRecipes, getRecipesByIngredients, getRecipeDetails, getRecipesByType } from '../../api/spoonacularApi';
 import { saveRecipe } from '../../api/savedRecipesApi';
@@ -140,7 +141,23 @@ const RecipeSuggestions = () => {
           data = await searchRecipes('quick easy', 12, 20);
           break;
         case 'innovative':
-          data = await getRecipesByType('appetizer', 12);
+          // Get all pantry items for innovative recipes
+          const auth2 = getAuth();
+          const user2 = auth2.currentUser;
+          if (user2) {
+            const userData2 = JSON.parse(localStorage.getItem('user_data'));
+            const userId2 = userData2?.user_id || user2.uid;
+            const allPantryItems = await getPantryItems(userId2);
+            
+            // Use all pantry items for innovative recipe search
+            const allIngredients = allPantryItems.length > 0 
+              ? allPantryItems.map(item => item.item_name).slice(0, 10).join(',')
+              : 'creative,fusion,unique';
+            
+            data = await getRecipesByIngredients(allIngredients, 12);
+          } else {
+            data = await searchRecipes('creative fusion unique', 12);
+          }
           break;
         default:
           data = await getRandomRecipes(12);
@@ -352,18 +369,21 @@ const RecipeSuggestions = () => {
           </button>
         </div>
 
-        {/* Recipes Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-            <span className="ml-2 text-gray-600">Loading recipes...</span>
-          </div>
-        ) : recipes.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No recipes available. API limit may have been reached.</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Recipes Grid */}
+          <div className="lg:col-span-3">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                <span className="ml-2 text-gray-600">Loading recipes...</span>
+              </div>
+            ) : recipes.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No recipes available. API limit may have been reached.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {recipes.map((recipe) => (
               <div
                 key={recipe.id}
@@ -468,9 +488,16 @@ const RecipeSuggestions = () => {
                   </div>
                 </div>
               </div>
-            ))}
+              ))}
+              </div>
+            )}
           </div>
-        )}
+          
+          {/* YouTube Video Panel */}
+          <div className="lg:col-span-1">
+            <YouTubeVideoPanel recipes={recipes} />
+          </div>
+        </div>
 
         <RecipeDetailModal
           isOpen={showModal}

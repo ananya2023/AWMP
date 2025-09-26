@@ -129,7 +129,7 @@ const Pantry = () => {
           daysLeft,
           location: 'Pantry',
           status,
-          image: item.image_url || 'https://picsum.photos/300/200?random=1640777'
+          image: item.image_url || 'https://images.unsplash.com/photo-1506617420156-8e4536971650?w=300&h=200&fit=crop&crop=center'
         };
       });
       
