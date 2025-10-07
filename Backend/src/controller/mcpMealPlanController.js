@@ -1,16 +1,16 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { model } = require('../utils/geminiHelper');
 
 const getRecipesByIngredients = async (req, res) => {
   try {
+    console.log('Received request body:', req.body);
     const { ingredients } = req.body;
     
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      console.log('Invalid ingredients:', ingredients);
       return res.status(400).json({ error: 'Ingredients array is required' });
     }
     
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    console.log('Using ingredients:', ingredients);
     const prompt = `Generate 10 detailed recipes using these ingredients: ${ingredients.join(', ')}. 
     Return ONLY a JSON array with this exact structure for each recipe:
     {
@@ -46,9 +46,11 @@ const getRecipesByIngredients = async (req, res) => {
     }
     
     const recipes = JSON.parse(responseText);
+    console.log('Generated recipes count:', recipes.length);
     
     res.json(recipes);
   } catch (error) {
+    console.error('Error in getRecipesByIngredients:', error);
     res.status(500).json({ error: error.message });
   }
 };
@@ -57,7 +59,6 @@ const generateWeeklyMealPlan = async (req, res) => {
   try {
     const { recipes, preferences } = req.body;
     
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `Create a detailed weekly meal plan using these recipes: ${JSON.stringify(recipes.slice(0, 5))}
     Preferences: ${JSON.stringify(preferences)}
     
@@ -113,7 +114,6 @@ const createShoppingList = async (req, res) => {
   try {
     const { mealPlan, fridgeInventory } = req.body;
     
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const prompt = `Create shopping list for meal plan: ${JSON.stringify(mealPlan)}
     Current fridge: ${JSON.stringify(fridgeInventory)}
     

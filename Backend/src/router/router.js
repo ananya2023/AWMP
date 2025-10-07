@@ -65,6 +65,7 @@ router.delete('/pantry-items/:item_id', pantryController.deletePantryItem);
 router.put('/pantry-items/:item_id', pantryController.updatePantryItem);
 
 router.post('/send-expiry-notification', notificationController.sendExpiryNotification);
+router.post('/send-bulk-expiry-notifications', notificationController.sendBulkExpiryNotifications);
 
 // SAVED RECIPES ROUTES
 // POST /api/saved-recipes - Save a recipe

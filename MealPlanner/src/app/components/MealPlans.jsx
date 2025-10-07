@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save } from 'lucide-react';
+import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save, CalendarDays } from 'lucide-react';
 import { getMealPlans, saveMealPlan, updateMealPlan, deleteMealPlan } from '../../api/mealPlanApi';
 import { getSavedRecipes } from '../../api/savedRecipesApi';
 import { getSmartRecipeSuggestions } from '../../api/smartMealPlanApi';
@@ -26,6 +26,19 @@ const MealPlans = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [showWeekPicker, setShowWeekPicker] = useState(false);
+
+  // Close week picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showWeekPicker && !event.target.closest('.week-picker-container')) {
+        setShowWeekPicker(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showWeekPicker]);
 
   // Load saved recipes and existing meal plans
   useEffect(() => {
@@ -49,25 +62,42 @@ const MealPlans = () => {
         setMealPlans(plans);
         setSavedRecipes(recipes);
         
-        // Check if there's a meal plan for today's week
-        const today = new Date().toISOString().split('T')[0];
-        console.log('Looking for meal plan for date:', today);
+        // Check if there's a meal plan for this week
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const currentWeekStart = new Date(today);
+        currentWeekStart.setDate(today.getDate() + mondayOffset + (currentWeekOffset * 7));
+        const weekStartDate = currentWeekStart.toISOString().split('T')[0];
+        
+        console.log('Looking for meal plan for week starting:', weekStartDate);
         console.log('Available meal plan dates:', plans.map(p => p.date));
-        const existingPlan = plans.find(plan => plan.date === today);
+        
+        // Also check if any meal plan falls within this week (not just Monday)
+        let existingPlan = plans.find(plan => plan.date === weekStartDate);
+        
+        if (!existingPlan) {
+          // Check if any plan date falls within the current week
+          const weekEndDate = new Date(currentWeekStart);
+          weekEndDate.setDate(currentWeekStart.getDate() + 6);
+          const weekEnd = weekEndDate.toISOString().split('T')[0];
+          
+          existingPlan = plans.find(plan => {
+            return plan.date >= weekStartDate && plan.date <= weekEnd;
+          });
+          
+          console.log(`Checking week range ${weekStartDate} to ${weekEnd}`);
+        }
+        
         console.log('Found existing plan:', existingPlan);
         
-        // If no plan for today, show the most recent plan
-        if (!existingPlan && plans.length > 0) {
-          const mostRecent = plans[0];
-          console.log('Using most recent plan:', mostRecent);
-          if (mostRecent && mostRecent.meals) {
-            setGeneratedMealPlan(mostRecent.meals);
-            setIsSaved(true);
-          }
-        }
         if (existingPlan && existingPlan.meals) {
           setGeneratedMealPlan(existingPlan.meals);
           setIsSaved(true);
+        } else {
+          // Clear any existing meal plan if no plan exists for this week
+          setGeneratedMealPlan(null);
+          setIsSaved(false);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -77,7 +107,7 @@ const MealPlans = () => {
     };
 
     loadData();
-  }, []);
+  }, [currentWeekOffset]);
 
   const defaultMealPlan = {
     id: 1,
@@ -338,11 +368,19 @@ const MealPlans = () => {
         return value === undefined ? null : value;
       }));
       
-      // Save the entire meal plan
+      // Calculate the week start date (Monday) for the current week offset
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + mondayOffset + (currentWeekOffset * 7));
+      const weekStartDate = weekStart.toISOString().split('T')[0];
+      
+      // Save the entire meal plan with the correct week start date
       const mealPlanData = {
         user_id: currentUser.uid,
         meal_plan: {
-          date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+          date: weekStartDate, // Use week start date instead of today
           meals: cleanMealPlan
         }
       };
@@ -354,7 +392,7 @@ const MealPlans = () => {
       setMealPlans(plans);
       setIsSaved(true);
       
-      console.log('Meal plan saved successfully');
+      console.log('Meal plan saved successfully for week starting:', weekStartDate);
       
     } catch (error) {
       console.error('Error saving meal plan:', error);
@@ -500,14 +538,91 @@ const MealPlans = () => {
       
       const weekStart = new Date(today);
       weekStart.setDate(today.getDate() + mondayOffset + (newOffset * 7));
-      const weekDate = weekStart.toISOString().split('T')[0];
+      const weekStartDate = weekStart.toISOString().split('T')[0];
       
-      const existingPlan = mealPlans.find(plan => plan.date === weekDate);
+      // Check for exact Monday match first
+      let existingPlan = mealPlans.find(plan => plan.date === weekStartDate);
+      
+      if (!existingPlan) {
+        // Check if any plan date falls within this week
+        const weekEndDate = new Date(weekStart);
+        weekEndDate.setDate(weekStart.getDate() + 6);
+        const weekEnd = weekEndDate.toISOString().split('T')[0];
+        
+        existingPlan = mealPlans.find(plan => {
+          return plan.date >= weekStartDate && plan.date <= weekEnd;
+        });
+      }
+      
       if (existingPlan && existingPlan.meals) {
         setGeneratedMealPlan(existingPlan.meals);
         setIsSaved(true);
+      } else {
+        // Ensure meal plan is cleared if no plan exists for this week
+        setGeneratedMealPlan(null);
+        setIsSaved(false);
       }
     }
+  };
+
+  const handleWeekSelect = (offset) => {
+    setCurrentWeekOffset(offset);
+    setShowWeekPicker(false);
+  };
+
+  const getWeekOptions = () => {
+    const weeks = [];
+    const today = new Date();
+    
+    // Generate weeks based on available meal plans + some buffer
+    const availableWeekOffsets = new Set();
+    
+    // Add offsets for existing meal plans
+    mealPlans.forEach(plan => {
+      const planDate = new Date(plan.date);
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const currentWeekStart = new Date(today);
+      currentWeekStart.setDate(today.getDate() + mondayOffset);
+      
+      // Calculate offset from current week
+      const diffTime = planDate.getTime() - currentWeekStart.getTime();
+      const diffWeeks = Math.round(diffTime / (7 * 24 * 60 * 60 * 1000));
+      availableWeekOffsets.add(diffWeeks);
+    });
+    
+    // Add current week and some buffer weeks
+    for (let i = -8; i <= 8; i++) {
+      availableWeekOffsets.add(i);
+    }
+    
+    // Convert to sorted array and generate week options
+    const sortedOffsets = Array.from(availableWeekOffsets).sort((a, b) => b - a);
+    
+    sortedOffsets.forEach(i => {
+      const dayOfWeek = today.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() + mondayOffset + (i * 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      
+      weeks.push({
+        offset: i,
+        label: i === 0 ? 'This Week' : 
+               i === -1 ? 'Last Week' : 
+               i === 1 ? 'Next Week' :
+               i < 0 ? `${Math.abs(i)} weeks ago` : `${i} weeks ahead`,
+        dateRange: `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        isCurrentWeek: i === 0,
+        hasMealPlan: mealPlans.some(plan => {
+          const planDate = new Date(plan.date);
+          return planDate >= weekStart && planDate <= weekEnd;
+        })
+      });
+    });
+    
+    return weeks;
   };
   
   const getHistoricalWeeks = () => {
@@ -586,15 +701,52 @@ const MealPlans = () => {
             >
               <ChevronLeft className="h-5 w-5 text-gray-600" />
             </button>
-            <select
-              value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:shadow-md transition-all duration-300"
-            >
-              <option value="previous">Previous Week</option>
-              <option value="current">Current Week</option>
-              <option value="next">Next Week</option>
-            </select>
+            
+            <div className="relative week-picker-container">
+              <button
+                onClick={() => setShowWeekPicker(!showWeekPicker)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:shadow-md transition-all duration-300 flex items-center space-x-2 bg-white"
+              >
+                <CalendarDays className="h-4 w-4 text-gray-600" />
+                <span className="text-sm font-medium">
+                  {currentWeekOffset === 0 ? 'This Week' :
+                   currentWeekOffset === -1 ? 'Last Week' :
+                   currentWeekOffset === 1 ? 'Next Week' :
+                   currentWeekOffset < 0 ? `${Math.abs(currentWeekOffset)} weeks ago` :
+                   `${currentWeekOffset} weeks ahead`}
+                </span>
+                <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showWeekPicker ? 'rotate-90' : ''}`} />
+              </button>
+              
+              {showWeekPicker && (
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {getWeekOptions().map((week) => (
+                    <button
+                      key={week.offset}
+                      onClick={() => handleWeekSelect(week.offset)}
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 last:border-b-0 ${
+                        week.offset === currentWeekOffset ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-sm">{week.label}</div>
+                        {week.hasMealPlan && (
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{week.dateRange}</div>
+                      {week.isCurrentWeek && (
+                        <div className="text-xs text-emerald-600 font-medium mt-1">• Current Week</div>
+                      )}
+                      {week.hasMealPlan && !week.isCurrentWeek && (
+                        <div className="text-xs text-blue-600 font-medium mt-1">• Has Meal Plan</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             <button 
               onClick={() => handleWeekNavigation(1)}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"

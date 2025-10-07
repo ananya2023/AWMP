@@ -115,6 +115,28 @@ exports.getUserById = async (user_id) => {
   }
 };
 
+exports.getAllUsers = async () => {
+  try {
+    const usersSnapshot = await db.collection('users').get();
+    
+    if (usersSnapshot.empty) {
+      return [];
+    }
+    
+    return usersSnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        user_id: data.user_id,
+        email: data.email,
+        name: data.name || 'User'
+      };
+    });
+  } catch (error) {
+    console.error("Error getting all users:", error);
+    throw new Error(`Error getting all users: ${error.message}`);
+  }
+};
+
 
 const fs = require('fs/promises');
 const { fileToGenerativePart, model } = require('../utils/geminiHelper'); // Adjust path accordingly
