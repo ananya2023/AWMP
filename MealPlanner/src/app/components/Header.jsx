@@ -10,7 +10,8 @@ import Pantry from './Pantry';
 import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import SmartSubstitutions from './SmartSubstitutions';
 import Dashboard from './Dashboard';
-import LogoutConfirmation from './LogoutConfirmation';  
+import LogoutConfirmation from './LogoutConfirmation';
+import Snackbar from './Snackbar';  
 
 const Header = () => {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ const Header = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [showNotificationToast, setShowNotificationToast] = useState(false);
 
   const [userData, setUserData] = useState({
     name: user?.displayName || 'User',
@@ -76,6 +78,10 @@ const Header = () => {
       console.error('Error signing out:', error);
       alert('Failed to logout. Please try again.');
     }
+  };
+
+  const handleNotificationClick = () => {
+    setShowNotificationToast(true);
   };
   
 
@@ -176,7 +182,7 @@ const Header = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 group-hover:text-emerald-600 transition-colors duration-300">Cooksy</h1>
-                <p className="text-xs text-emerald-600 font-medium group-hover:text-emerald-700 transition-colors duration-300">Meal Planner</p>
+                <p className="text-xs text-emerald-600 font-medium group-hover:text-emerald-700 transition-colors duration-300">Boss Your Kitchen</p>
               </div>
             </div>
 
@@ -206,7 +212,10 @@ const Header = () => {
               <button className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg group">
                 <Search className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
               </button>
-              <button className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg relative group">
+              <button 
+                onClick={handleNotificationClick}
+                className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg relative group"
+              >
                 <Bell className="h-5 w-5 group-hover:animate-bounce transition-transform duration-300" />
                 <span className="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center animate-pulse shadow-lg">
                   3
@@ -488,6 +497,14 @@ const Header = () => {
         onClose={() => setShowLogoutConfirmation(false)}
         onConfirm={handleLogoutConfirm}
         userName={user?.displayName}
+      />
+      
+      <Snackbar
+        message="Coming sooner than you expect! 🚀"
+        type="success"
+        isOpen={showNotificationToast}
+        onClose={() => setShowNotificationToast(false)}
+        duration={3000}
       />
     </>
   );
