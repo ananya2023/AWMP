@@ -5,6 +5,8 @@ import {
   Users,
   Plus,
   X,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 
 const MealPlanDialog = ({
@@ -21,6 +23,9 @@ const MealPlanDialog = ({
   const [notes, setNotes] = useState('');
   const [plannedDay, setPlannedDay] = useState(selectedDay);
   const [plannedMealType, setPlannedMealType] = useState(mealType);
+  const [suggestedRecipes, setSuggestedRecipes] = useState([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const mealTypes = [
@@ -29,13 +34,51 @@ const MealPlanDialog = ({
     { value: 'dinner', label: 'Dinner' },
   ];
 
-  const handleSave = () => {
-    console.log('Validation check:', {
-      recipeName: recipeName,
-      plannedDay: plannedDay,
-      plannedMealType: plannedMealType
-    });
+  const loadAISuggestions = async () => {
+    const userData = JSON.parse(localStorage.getItem('user_data'));
+    if (!userData?.user_id) return;
     
+    setIsLoadingSuggestions(true);
+    try {
+      // Use the existing API functions
+      const { get_fridge_inventory, get_recipes_by_ingredients } = await import('../../api/mcpMealPlanApi');
+      
+      // Get pantry ingredients
+      const fridgeInventory = await get_fridge_inventory(userData.user_id);
+      const validIngredients = fridgeInventory.map(item => item.name).filter(Boolean);
+      
+      if (validIngredients.length === 0) {
+        setSuggestedRecipes([]);
+        return;
+      }
+      
+      // Get recipes based on ingredients and meal type
+      const recipes = await get_recipes_by_ingredients(validIngredients, plannedMealType);
+      
+      // Filter recipes by meal type if not already filtered
+      const filteredRecipes = Array.isArray(recipes) ? 
+        recipes.filter(recipe => 
+          !recipe.mealTypes || recipe.mealTypes.includes(plannedMealType)
+        ).slice(0, 5) : [];
+      
+      setSuggestedRecipes(filteredRecipes);
+    } catch (error) {
+      console.error('Error loading AI suggestions:', error);
+      setSuggestedRecipes([]);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  };
+
+  const selectRecipe = (recipe) => {
+    setSelectedRecipe(recipe);
+    setRecipeName(recipe.name);
+    setCookTime(recipe.cookTime || '');
+    setServings(recipe.servings?.toString() || '');
+    setNotes(recipe.description || '');
+  };
+
+  const handleSave = () => {
     if (!recipeName.trim() || !plannedDay.trim() || !plannedMealType.trim()) {
       alert('Please fill in recipe name, day, and meal type');
       return;
@@ -48,6 +91,12 @@ const MealPlanDialog = ({
       cookTime,
       servings,
       notes,
+      ...(selectedRecipe && {
+        ingredients: selectedRecipe.ingredients,
+        instructions: selectedRecipe.instructions,
+        difficulty: selectedRecipe.difficulty,
+        nutritionInfo: selectedRecipe.nutritionInfo
+      })
     };
 
     if (onSave) {
@@ -59,6 +108,8 @@ const MealPlanDialog = ({
     setCookTime('');
     setServings('');
     setNotes('');
+    setSelectedRecipe(null);
+    setSuggestedRecipes([]);
   };
 
   useEffect(() => {
@@ -75,8 +126,16 @@ const MealPlanDialog = ({
       setCookTime('');
       setServings('');
       setNotes('');
+      setSelectedRecipe(null);
+      setSuggestedRecipes([]);
     }
   }, [selectedDay, mealType, existingMeal]);
+
+  useEffect(() => {
+    if (isOpen && !existingMeal) {
+      loadAISuggestions();
+    }
+  }, [isOpen, plannedMealType, existingMeal]);
 
   if (!isOpen) return null;
 
@@ -97,6 +156,64 @@ const MealPlanDialog = ({
         </div>
         
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+          {/* AI Recipe Suggestions */}
+          {!existingMeal && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl border border-emerald-200">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <Sparkles className="h-5 w-5 text-emerald-600 mr-2" />
+                  <h3 className="font-medium text-gray-900">AI Recipe Suggestions</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={loadAISuggestions}
+                  disabled={isLoadingSuggestions}
+                  className="flex items-center gap-1 px-2 py-1 text-sm text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoadingSuggestions ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+              </div>
+              
+              {isLoadingSuggestions ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600 mx-auto"></div>
+                  <p className="text-sm text-gray-600 mt-2">Finding recipes with your pantry ingredients...</p>
+                </div>
+              ) : suggestedRecipes.length > 0 ? (
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {suggestedRecipes.map((recipe, index) => (
+                    <div
+                      key={index}
+                      onClick={() => selectRecipe(recipe)}
+                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                        selectedRecipe?.name === recipe.name
+                          ? 'border-emerald-500 bg-emerald-50'
+                          : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-25'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 text-sm">{recipe.name}</h4>
+                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">{recipe.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                            {recipe.cookTime && <span>⏱️ {recipe.cookTime}</span>}
+                            {recipe.difficulty && <span>📊 {recipe.difficulty}</span>}
+                            {recipe.servings && <span>👥 {recipe.servings}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600 text-center py-2">
+                  No recipes found with your current pantry items. Try adding more ingredients!
+                </p>
+              )}
+            </div>
+          )}
+          
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

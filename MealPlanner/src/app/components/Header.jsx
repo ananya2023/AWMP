@@ -209,9 +209,6 @@ const Header = () => {
 
             {/* Right side */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg group">
-                <Search className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-              </button>
               <button 
                 onClick={handleNotificationClick}
                 className="p-2 text-gray-600 hover:text-emerald-600 transition-all duration-300 hover:scale-110 hover:bg-emerald-50 rounded-lg relative group"

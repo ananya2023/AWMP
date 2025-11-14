@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save, CalendarDays } from 'lucide-react';
+import { Calendar, Plus, Edit3, Trash2, ChefHat, Clock, Users, Star, TrendingUp, Target, Zap, ArrowRight, CheckCircle, AlertTriangle, Search, Filter, Heart, Bookmark, ChevronLeft, ChevronRight, History, Loader2, Save, CalendarDays, BookOpen } from 'lucide-react';
 import { getMealPlans, saveMealPlan, updateMealPlan, deleteMealPlan } from '../../api/mealPlanApi';
 import { getSavedRecipes } from '../../api/savedRecipesApi';
 import { getSmartRecipeSuggestions } from '../../api/smartMealPlanApi';
 import { generateIntelligentMealPlan } from '../../api/mcpMealPlanApi';
 import { getAuth } from 'firebase/auth';
 import EditMealModal from './EditMealModal';
+import RecipeDetailModal from './RecipeDetailModal';
 const MealPlans = () => {
   const [selectedWeek, setSelectedWeek] = useState('current');
   const [selectedDay, setSelectedDay] = useState(null);
@@ -27,6 +28,8 @@ const MealPlans = () => {
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [showWeekPicker, setShowWeekPicker] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
 
   // Close week picker when clicking outside
   useEffect(() => {
@@ -570,6 +573,11 @@ const MealPlans = () => {
     setShowWeekPicker(false);
   };
 
+  const handleViewRecipe = (meal) => {
+    setSelectedRecipe(meal);
+    setShowRecipeModal(true);
+  };
+
   const getWeekOptions = () => {
     const weeks = [];
     const today = new Date();
@@ -978,12 +986,27 @@ const MealPlans = () => {
 
                               {meal ? (
                                 <div className="space-y-2">
-                                  <img
-                                    src={meal.image}
-                                    alt={meal.name}
-                                    className="w-full h-20 object-cover rounded-md"
-                                  />
-                                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1" title={meal.name}>{meal.name}</h4>
+                                  <div className="relative">
+                                    <img
+                                      src={meal.image}
+                                      alt={meal.name}
+                                      className="w-full h-20 object-cover rounded-md"
+                                    />
+                                    <div className={`absolute top-1 right-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                      meal.source === 'pantry' 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                      {meal.source === 'pantry' ? '🥬 Pantry' : '🎲 Random'}
+                                    </div>
+                                  </div>
+                                  <h4 
+                                    className="font-medium text-gray-900 text-sm line-clamp-1 cursor-pointer hover:text-emerald-600 transition-colors duration-200" 
+                                    title={meal.name}
+                                    onClick={() => handleViewRecipe(meal)}
+                                  >
+                                    {meal.name}
+                                  </h4>
                                   {meal.description && (
                                     <p className="text-xs text-gray-600 line-clamp-2" title={meal.description}>{meal.description}</p>
                                   )}
@@ -1012,6 +1035,13 @@ const MealPlans = () => {
                                       title={meal.status === 'completed' ? 'Mark as Planned' : 'Mark as Completed'}
                                     >
                                       <CheckCircle className="h-3 w-3" />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleViewRecipe(meal)}
+                                      className="p-1 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors duration-200"
+                                      title="View Recipe"
+                                    >
+                                      <BookOpen className="h-3 w-3" />
                                     </button>
                                     <button 
                                       onClick={() => handleEditMeal(day, mealType.id, meal)}
@@ -1213,13 +1243,31 @@ const MealPlans = () => {
               )}
               <span>{generating ? 'Generating...' : 'Meal Plan This Week'}</span>
             </button>
-            <button className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm font-medium">
+            <button 
+              onClick={() => {
+                setShowSnackbar(true);
+                setTimeout(() => setShowSnackbar(false), 3000);
+              }}
+              className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 text-sm font-medium"
+            >
               Generate Shopping List
             </button>
-            <button className="w-full px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors duration-200 text-sm font-medium">
+            <button 
+              onClick={() => {
+                setShowSnackbar(true);
+                setTimeout(() => setShowSnackbar(false), 3000);
+              }}
+              className="w-full px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors duration-200 text-sm font-medium"
+            >
               Duplicate This Week
             </button>
-            <button className="w-full px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors duration-200 text-sm font-medium">
+            <button 
+              onClick={() => {
+                setShowSnackbar(true);
+                setTimeout(() => setShowSnackbar(false), 3000);
+              }}
+              className="w-full px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 transition-colors duration-200 text-sm font-medium"
+            >
               Share Plan
             </button>
           </div>
@@ -1252,6 +1300,12 @@ const MealPlans = () => {
         </div>,
         document.body
       )}
+      
+      <RecipeDetailModal
+        isOpen={showRecipeModal}
+        onClose={() => setShowRecipeModal(false)}
+        recipe={selectedRecipe}
+      />
     </div>
   );
 };
