@@ -1,147 +1,155 @@
-# AWMP - Smart Kitchen Meal Planner
+🥘 Cooksy — Smart, Anti-Waste Meal Planner
 
-A comprehensive AI-powered meal planning and pantry management application that helps reduce food waste and simplify cooking.
+Cooksy is a smart, AI-powered kitchen assistant designed to reduce food waste, help you cook smarter, and make meal planning effortless — all based on what you already have at home.
 
-## 🍳 Features
+Inspired by years of tossing spoiled groceries and failed planning, Cooksy turns chaos into clarity, guilt into empowerment, and leftovers into delicious meals.
 
-### Smart Pantry Management
-- **Manual Item Addition**: Add pantry items with expiry dates, quantities, and categories
-- **Receipt Scanning**: AI-powered receipt scanning using Gemini AI to automatically extract grocery items
-- **Expiry Tracking**: Visual indicators for items expiring soon with color-coded alerts
+⭐ Overview
 
-### AI-Powered Recipe Assistance
-- **Voice Recipe Assistant**: Voice-activated cooking companion powered by Gemini AI
-- **YouTube Integration**: Find recipe videos based on available ingredients
-- **Personalized Suggestions**: Get recipe recommendations based on pantry contents
+Most meal apps tell you what to buy before you cook. Cooksy flips the script.
 
-### Meal Planning
-- **Weekly Meal Plans**: Plan and organize meals for the week
-- **Smart Shopping Lists**: Generate shopping lists based on meal plans
-- **Saved Recipes**: Save and organize favorite recipes
+Cooksy starts with your kitchen reality — your groceries, your habits, your preferences — and helps you cook better without wasting food or money.
 
-### User Experience
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Smooth Animations**: Enhanced UI with Lottie animations and smooth transitions
-- **Intuitive Navigation**: Burger menu with easy access to all features
+With features like receipt scanning, inventory tracking, expiry alerts, recipe suggestions, and an AI Meal Planner, Cooksy becomes your daily kitchen partner.
 
-## 🛠️ Technology Stack
+🎨 Design Philosophy
 
-### Frontend
-- **React** - Modern JavaScript framework
-- **Material-UI** - Component library for consistent design
-- **Lottie React** - Smooth animations
-- **React Query** - Data fetching and caching
-- **React Router** - Navigation
+Cooksy was built from a personal pain point: existing apps ignored what was already in the fridge.
 
-### Backend
-- **Node.js** - Server runtime
-- **Express.js** - Web framework
-- **Firebase Firestore** - NoSQL database
-- **Google Gemini AI** - AI-powered features
-- **Multer** - File upload handling
+So Cooksy was designed to:
 
-### APIs & Services
-- **Google Gemini AI** - Recipe generation and receipt scanning
-- **YouTube Data API** - Recipe video search
-- **Firebase Authentication** - User management
-- **Speech Recognition API** - Voice commands
+Minimize cognitive load
 
-## 🚀 Getting Started
+Surface expiring items visually
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- Firebase project setup
-- Google Gemini API key
-- YouTube Data API key
+Make recipe decisions effortless
 
-### Installation
+Suggest meals before ingredients go bad
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd AWMP
-```
+Create a low-friction flow: scan → track → cook → save
 
-2. **Install Backend Dependencies**
-```bash
-cd Backend
-npm install
-```
+The result is a clean, intuitive experience that supports real kitchens and real lives.
 
-3. **Install Frontend Dependencies**
-```bash
-cd ../MealPlanner
-npm install
-```
+🛠️ Tech Stack
 
-4. **Environment Setup**
+Frontend:
 
-Backend (.env):
-```
-GEMINI_API_KEY=your_gemini_api_key
-```
+React.js
 
-Frontend (.env):
-```
-VITE_APP_GEMINI_API_KEY=your_gemini_api_key
-VITE_APP_YOUTUBE_API_KEY=your_youtube_api_key
-```
+Material UI
 
-5. **Firebase Configuration**
-- Set up Firebase project
-- Configure Firestore database
-- Add Firebase config to `src/firebase/firebase.js`
+Redux (state management)
 
-### Running the Application
+Backend:
 
-1. **Start Backend Server**
-```bash
-cd Backend
-npm run dev
-```
+Node.js
 
-2. **Start Frontend Development Server**
-```bash
-cd MealPlanner
-npm run dev
-```
+Express.js
 
-3. **Access the Application**
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3001
+Database:
 
-## 📱 Usage
+Firebase Firestore
 
-1. **Sign Up/Login**: Create an account or login with existing credentials
-2. **Add Pantry Items**: Manually add items or scan grocery receipts
-3. **Get Recipe Suggestions**: Use voice commands to find recipes based on available ingredients
-4. **Plan Meals**: Create weekly meal plans and generate shopping lists
-5. **Track Expiry**: Monitor items expiring soon to reduce food waste
+Auth:
 
-## 🎯 Key Benefits
+Firebase Authentication
 
-- **Reduce Food Waste**: Track expiry dates and use ingredients efficiently
-- **Save Time**: AI-powered recipe suggestions and meal planning
-- **Smart Shopping**: Generate optimized shopping lists
-- **Voice Assistance**: Hands-free cooking guidance
-- **Organized Kitchen**: Keep track of pantry inventory
+Cloud / Hosting:
 
-## 🤝 Contributing
+Google Cloud Platform
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+App Engine
 
-## 📄 License
+Cloud Functions
 
-This project is licensed under the MIT License.
+Food Database:
 
-## 👥 Team
+Spoonacular API
 
-**By Patchamomma**
+AI:
 
----
+Google Vertex AI
 
-*Transform your kitchen experience with AI-powered meal planning and smart pantry management!*
+🍳 What Cooksy Can Do
+1. Start With Your Reality
+
+Scan your grocery receipt or add pantry items manually.
+
+Cooksy logs items, quantity, and expiry.
+
+Do this once per week — Cooksy handles the rest.
+
+2. Smart Suggestions — Right on Time
+
+Alerts like “Chicken expires tonight!”
+
+Single-tap access to recipes that match your ingredients.
+
+3. Trusted, Tried & Tested Recipes
+
+Cooksy never invents risky recipes using AI.
+
+All dishes come from verified food databases — real, tested, guaranteed.
+
+4. Goodbye Waste with AI Recipe Inventor
+
+Enter leftovers or random ingredients.
+
+AI combines them intelligently with database recipes to remove waste entirely.
+
+5. Personalized Cooking
+
+Set allergies and dietary preferences.
+
+Cooksy tailors recipes automatically.
+
+6. Save & Share Your Creations
+
+Store your favorite dishes in your personal Cooksy Recipe Book.
+
+Revisit anytime or share with friends.
+
+7. 🍽️ AI Meal Planner
+
+One-click weekly planner.
+
+Adapts to your available ingredients, diet, and schedule.
+
+8. Stay in Control
+
+Track:
+
+What you cook
+
+What you save
+
+What you waste
+
+Learn to shop better and build a sustainable kitchen routine.
+
+🚀 What’s Next (Roadmap)
+
+🗣️ Voice Assistant Integration
+Add items or ask for recipes via Google Assistant.
+
+🤝 Community Recipe Sharing
+Share, rate, and explore trending dishes.
+
+🛒 Smart Shopping List 2.0
+Auto-restock suggestions, budget tracking, and online store integration.
+
+…and so much more coming soon!
+
+🙏 Acknowledgements
+
+Special thanks to the Patachmomma Program Leads and Abirami Sukumaran for the guidance, mentorship, and opportunity that helped Cooksy grow from an idea into a working solution.
+
+Cooksy is still evolving — and the journey ahead is exciting.
+
+📌 Conclusion
+
+Cooksy transforms everyday cooking into a confident, enjoyable, and waste-free routine.
+
+Cook better meals
+
+Build a sustainable kitchen lifestyle
