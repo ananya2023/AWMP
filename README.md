@@ -1,155 +1,141 @@
-🥘 Cooksy — Smart, Anti-Waste Meal Planner
+# 🥘 Cooksy — Smart, Anti-Waste Meal Planner
 
 Cooksy is a smart, AI-powered kitchen assistant designed to reduce food waste, help you cook smarter, and make meal planning effortless — all based on what you already have at home.
 
 Inspired by years of tossing spoiled groceries and failed planning, Cooksy turns chaos into clarity, guilt into empowerment, and leftovers into delicious meals.
 
-⭐ Overview
+---
 
-Most meal apps tell you what to buy before you cook. Cooksy flips the script.
+## ⭐ Overview
 
-Cooksy starts with your kitchen reality — your groceries, your habits, your preferences — and helps you cook better without wasting food or money.
+Most meal apps tell you *what to buy* before you cook.  
+Cooksy flips the script.
+
+Cooksy starts with **your kitchen reality** — your groceries, your habits, your preferences — and helps you cook better without wasting food or money.
 
 With features like receipt scanning, inventory tracking, expiry alerts, recipe suggestions, and an AI Meal Planner, Cooksy becomes your daily kitchen partner.
 
-🎨 Design Philosophy
+---
+
+## 🎨 Design Philosophy
 
 Cooksy was built from a personal pain point: existing apps ignored what was already in the fridge.
 
 So Cooksy was designed to:
 
-Minimize cognitive load
-
-Surface expiring items visually
-
-Make recipe decisions effortless
-
-Suggest meals before ingredients go bad
-
-Create a low-friction flow: scan → track → cook → save
+- Minimize cognitive load  
+- Surface expiring items visually  
+- Make recipe decisions effortless  
+- Suggest meals *before* ingredients go bad  
+- Create a low-friction flow: **scan → track → cook → save**
 
 The result is a clean, intuitive experience that supports real kitchens and real lives.
 
-🛠️ Tech Stack
+---
 
-Frontend:
+## 🛠️ Tech Stack
 
-React.js
+### **Frontend**
+- React.js  
+- Material UI  
+- Redux  
 
-Material UI
+### **Backend**
+- Node.js  
+- Express.js  
 
-Redux (state management)
+### **Database**
+- Firebase Firestore  
 
-Backend:
+### **Authentication**
+- Firebase Authentication  
 
-Node.js
+### **Cloud / Hosting**
+- Google Cloud Platform  
+  - App Engine  
+  - Cloud Functions  
 
-Express.js
+### **Food Database**
+- Spoonacular API  
 
-Database:
+### **AI**
+- Google Vertex AI  
 
-Firebase Firestore
+---
 
-Auth:
+## 🍳 What Cooksy Can Do
 
-Firebase Authentication
+### **1. Start With Your Reality**
+- Scan your grocery receipt or enter items manually.  
+- Cooksy logs items, quantities, and expiries.  
+- A quick setup once per week — Cooksy handles the rest.
 
-Cloud / Hosting:
+### **2. Smart Suggestions — Right on Time**
+- Alerts like **“Chicken expires tonight!”**  
+- Explore simple recipes matched to your actual ingredients.
 
-Google Cloud Platform
+### **3. Trusted, Tried & Tested Recipes**
+- Cooksy **never invents random recipes using AI**.  
+- All dishes come from verified, real, tested food databases.
 
-App Engine
+### **4. Goodbye Waste With AI Recipe Inventor**
+- Enter leftovers or random ingredients.  
+- AI combines them with database-backed recipes to eliminate waste.
 
-Cloud Functions
+### **5. Personalized for You**
+- Set dietary preferences and allergies.  
+- Cooksy automatically filters and tailors suggestions.
 
-Food Database:
+### **6. Save & Share Your Creations**
+- Build your own Cooksy Recipe Book.  
+- Revisit favorites or share with others.
 
-Spoonacular API
+### **7. 🍽️ AI Meal Planner**
+- Plan your week with one click.  
+- Adapts to your ingredients, preferences, and schedule.
 
-AI:
+### **8. Stay in Control**
+- Track:
+  - What you cooked  
+  - What you saved  
+  - What you wasted  
+- Cooksy helps you shop smarter and reduce waste long-term.
 
-Google Vertex AI
+---
 
-🍳 What Cooksy Can Do
-1. Start With Your Reality
+## 🚀 What’s Next (Roadmap)
 
-Scan your grocery receipt or add pantry items manually.
+- **🗣️ Voice Assistant Integration**  
+  Add groceries, check expiry dates, or request recipes using Google Assistant.
 
-Cooksy logs items, quantity, and expiry.
+- **🤝 Community Recipe Sharing**  
+  Share your recipes, explore others, and discover trending meals.
 
-Do this once per week — Cooksy handles the rest.
+- **🛒 Smart Shopping List 2.0**  
+  Auto-restock, budget tracking, and online grocery integrations.
 
-2. Smart Suggestions — Right on Time
+…and much more coming soon!
 
-Alerts like “Chicken expires tonight!”
+---
 
-Single-tap access to recipes that match your ingredients.
+## 🙏 Acknowledgements
 
-3. Trusted, Tried & Tested Recipes
+A huge thank you to the **Patachmomma Program Leads** and **Abirami Sukumaran** for their support and guidance throughout this project.
 
-Cooksy never invents risky recipes using AI.
+Cooksy is still early in its journey — but the future looks delicious.
 
-All dishes come from verified food databases — real, tested, guaranteed.
+---
 
-4. Goodbye Waste with AI Recipe Inventor
+## 📌 Conclusion
 
-Enter leftovers or random ingredients.
+Cooksy transforms everyday cooking into a confident, enjoyable, waste-free routine.
 
-AI combines them intelligently with database recipes to remove waste entirely.
 
-5. Personalized Cooking
+---
 
-Set allergies and dietary preferences.
+## 📬 Connect With Me
 
-Cooksy tailors recipes automatically.
-
-6. Save & Share Your Creations
-
-Store your favorite dishes in your personal Cooksy Recipe Book.
-
-Revisit anytime or share with friends.
-
-7. 🍽️ AI Meal Planner
-
-One-click weekly planner.
-
-Adapts to your available ingredients, diet, and schedule.
-
-8. Stay in Control
-
-Track:
-
-What you cook
-
-What you save
-
-What you waste
-
-Learn to shop better and build a sustainable kitchen routine.
-
-🚀 What’s Next (Roadmap)
-
-🗣️ Voice Assistant Integration
-Add items or ask for recipes via Google Assistant.
-
-🤝 Community Recipe Sharing
-Share, rate, and explore trending dishes.
-
-🛒 Smart Shopping List 2.0
-Auto-restock suggestions, budget tracking, and online store integration.
-
-…and so much more coming soon!
-
-🙏 Acknowledgements
-
-Special thanks to the Patachmomma Program Leads and Abirami Sukumaran for the guidance, mentorship, and opportunity that helped Cooksy grow from an idea into a working solution.
-
-Cooksy is still evolving — and the journey ahead is exciting.
-
-📌 Conclusion
-
-Cooksy transforms everyday cooking into a confident, enjoyable, and waste-free routine.
-
-Cook better meals
-
-Build a sustainable kitchen lifestyle
+**👩‍💻 Ananya Miriyala**  
+https://www.linkedin.com/in/ananyamiriyala/
+🔗 **LinkedIn:** _Ananya Miriyala_  
+💬 Follow for more on **AI | Web Development | Agents**
