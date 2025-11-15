@@ -8,7 +8,16 @@ export const get_fridge_inventory = async (userId) => {
     if (!response.ok) throw new Error('Failed to fetch fridge inventory');
     const result = await response.json();
     const data = result.data || [];
-    return data.map(item => ({
+    
+    // Filter out expired items
+    const today = new Date();
+    const validItems = data.filter(item => {
+      if (!item.expiry_date) return true;
+      const expiryDate = new Date(item.expiry_date);
+      return expiryDate >= today;
+    });
+    
+    return validItems.map(item => ({
       name: item.item_name || item.name,
       quantity: item.quantity,
       expiryDate: item.expiry_date,
@@ -20,15 +29,24 @@ export const get_fridge_inventory = async (userId) => {
   }
 };
 
-export const get_recipes_by_ingredients = async (ingredients) => {
+export const get_recipes_by_ingredients = async (ingredients, mealType = null) => {
   try {
     const response = await fetch(`${API_BASE_URL}/recipes/by-ingredients`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ingredients }),
+      body: JSON.stringify({ ingredients, mealType }),
     });
     if (!response.ok) throw new Error('Failed to fetch recipes by ingredients');
-    return await response.json();
+    const recipes = await response.json();
+    
+    // Filter by meal type if specified
+    if (mealType && Array.isArray(recipes)) {
+      return recipes.filter(recipe => 
+        recipe.mealTypes && recipe.mealTypes.includes(mealType)
+      );
+    }
+    
+    return recipes;
   } catch (error) {
     console.error('Error fetching recipes by ingredients:', error);
     throw error;
@@ -75,7 +93,7 @@ export const generateIntelligentMealPlan = async (userId, preferences = {}) => {
     const availableIngredients = fridgeInventory.map(item => item.name);
     
     // Step 3: Get recipes that can be made with available ingredients
-    const possibleRecipes = await get_recipes_by_ingredients(availableIngredients);
+    const possibleRecipes = await get_recipes_by_ingredients(availableIngredients, preferences.mealType);
     
     // Step 4: Generate weekly meal plan with smart preferences
     const defaultPreferences = {
@@ -84,6 +102,7 @@ export const generateIntelligentMealPlan = async (userId, preferences = {}) => {
       weekdayComplexity: 'quick',
       weekendComplexity: 'elaborate',
       wasteReduction: true,
+      mealType: preferences.mealType || null,
       ...preferences
     };
     
@@ -96,6 +115,7 @@ export const generateIntelligentMealPlan = async (userId, preferences = {}) => {
       mealPlan,
       shoppingList,
       fridgeInventory,
+      possibleRecipes,
       wasteReductionTips: mealPlan.wasteReductionTips || []
     };
   } catch (error) {

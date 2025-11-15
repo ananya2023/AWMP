@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Plus } from 'lucide-react';
 import MealPlanDialog from './MealPlanDialog';
 
@@ -6,23 +6,116 @@ const MealPlanner = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState('');
   const [selectedMealType, setSelectedMealType] = useState('');
-
-  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const meals= {
-    'Mon': { breakfast: 'Banana Smoothie', lunch: 'Chicken Salad', dinner: 'Spinach Pasta' },
-    'Tue': { breakfast: '', lunch: 'Leftover Pasta', dinner: '' },
-    'Wed': { breakfast: 'Toast', lunch: '', dinner: 'Stir Fry' },
+  const [meals, setMeals] = useState({
+    'Mon': { breakfast: '', lunch: '', dinner: '' },
+    'Tue': { breakfast: '', lunch: '', dinner: '' },
+    'Wed': { breakfast: '', lunch: '', dinner: '' },
     'Thu': { breakfast: '', lunch: '', dinner: '' },
     'Fri': { breakfast: '', lunch: '', dinner: '' },
     'Sat': { breakfast: '', lunch: '', dinner: '' },
     'Sun': { breakfast: '', lunch: '', dinner: '' },
-  };
+  });
+
+  const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const handlePlanMeal = (day, mealType) => {
     setSelectedDay(day);
     setSelectedMealType(mealType);
     setIsDialogOpen(true);
   };
+
+  const handleSaveMeal = async (mealData) => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user_data'));
+      if (!userData?.user_id) {
+        alert('Please log in to save meal plans.');
+        return;
+      }
+
+      // Update local state
+      setMeals(prev => ({
+        ...prev,
+        [mealData.day]: {
+          ...prev[mealData.day],
+          [mealData.mealType]: mealData.name
+        }
+      }));
+
+      // Save to backend
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? 
+        `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 
+        'http://localhost:3008/api/awmp';
+      
+      const response = await fetch(`${API_BASE_URL}/meal-plans`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userData.user_id,
+          day: mealData.day,
+          meal_type: mealData.mealType,
+          recipe_name: mealData.name,
+          cook_time: mealData.cookTime,
+          servings: mealData.servings,
+          notes: mealData.notes,
+          ingredients: mealData.ingredients || [],
+          instructions: mealData.instructions || [],
+          start_date: new Date().toISOString().split('T')[0] // Current week
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save meal plan');
+      }
+
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      alert('Failed to save meal plan. Please try again.');
+    }
+  };
+
+  const loadMealPlans = async () => {
+    const userData = JSON.parse(localStorage.getItem('user_data'));
+    if (!userData?.user_id) return;
+    
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? 
+        `${import.meta.env.VITE_API_BASE_URL}/api/awmp` : 
+        'http://localhost:3008/api/awmp';
+      
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + 6);
+      
+      const response = await fetch(
+        `${API_BASE_URL}/meal-plans?user_id=${userData.user_id}&start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`
+      );
+      
+      if (response.ok) {
+        const result = await response.json();
+        const mealPlans = result.data || [];
+        
+        // Convert meal plans to the expected format
+        const newMeals = { ...meals };
+        mealPlans.forEach(plan => {
+          if (plan.day && plan.meal_type && plan.recipe_name) {
+            newMeals[plan.day] = {
+              ...newMeals[plan.day],
+              [plan.meal_type]: plan.recipe_name
+            };
+          }
+        });
+        
+        setMeals(newMeals);
+      }
+    } catch (error) {
+      console.error('Error loading meal plans:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadMealPlans();
+  }, []);
 
   return (
     <>
@@ -85,6 +178,7 @@ const MealPlanner = () => {
         onClose={() => setIsDialogOpen(false)}
         selectedDay={selectedDay}
         mealType={selectedMealType}
+        onSave={handleSaveMeal}
       />
     </>
   );
