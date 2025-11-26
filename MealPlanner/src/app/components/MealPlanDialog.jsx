@@ -7,7 +7,9 @@ import {
   X,
   Sparkles,
   RefreshCw,
+  Eye,
 } from 'lucide-react';
+import RecipeDetailModal from './RecipeDetailModal';
 
 const MealPlanDialog = ({
   isOpen,
@@ -26,6 +28,8 @@ const MealPlanDialog = ({
   const [suggestedRecipes, setSuggestedRecipes] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const [viewingRecipe, setViewingRecipe] = useState(null);
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const mealTypes = [
@@ -76,6 +80,15 @@ const MealPlanDialog = ({
     setCookTime(recipe.cookTime || '');
     setServings(recipe.servings?.toString() || '');
     setNotes(recipe.description || '');
+  };
+
+  const viewRecipe = (recipe) => {
+    setViewingRecipe({
+      ...recipe,
+      title: recipe.name,
+      image: recipe.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop&crop=center&q=80'
+    });
+    setShowRecipeModal(true);
   };
 
   const handleSave = () => {
@@ -141,8 +154,8 @@ const MealPlanDialog = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[70vh] overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center">
             <Calendar size={20} className="mr-2 text-emerald-600" />
             <h2 className="text-xl font-bold text-gray-900">Plan Your Meal</h2>
@@ -155,7 +168,7 @@ const MealPlanDialog = ({
           </button>
         </div>
         
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+        <div className="p-4 overflow-y-auto max-h-[calc(70vh-120px)]">
           {/* AI Recipe Suggestions */}
           {!existingMeal && (
             <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl border border-emerald-200">
@@ -181,19 +194,18 @@ const MealPlanDialog = ({
                   <p className="text-sm text-gray-600 mt-2">Finding recipes with your pantry ingredients...</p>
                 </div>
               ) : suggestedRecipes.length > 0 ? (
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <div className="space-y-2 max-h-32 overflow-y-auto">
                   {suggestedRecipes.map((recipe, index) => (
                     <div
                       key={index}
-                      onClick={() => selectRecipe(recipe)}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                      className={`p-3 rounded-lg border transition-all ${
                         selectedRecipe?.name === recipe.name
                           ? 'border-emerald-500 bg-emerald-50'
                           : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-25'
                       }`}
                     >
                       <div className="flex justify-between items-start">
-                        <div className="flex-1">
+                        <div className="flex-1 cursor-pointer" onClick={() => selectRecipe(recipe)}>
                           <h4 className="font-medium text-gray-900 text-sm">{recipe.name}</h4>
                           <p className="text-xs text-gray-600 mt-1 line-clamp-2">{recipe.description}</p>
                           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
@@ -202,6 +214,16 @@ const MealPlanDialog = ({
                             {recipe.servings && <span>👥 {recipe.servings}</span>}
                           </div>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            viewRecipe(recipe);
+                          }}
+                          className="ml-2 p-1 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                          title="View Recipe Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -332,6 +354,12 @@ const MealPlanDialog = ({
           </button>
         </div>
       </div>
+      
+      <RecipeDetailModal
+        isOpen={showRecipeModal}
+        onClose={() => setShowRecipeModal(false)}
+        recipe={viewingRecipe}
+      />
     </div>
   );
 };

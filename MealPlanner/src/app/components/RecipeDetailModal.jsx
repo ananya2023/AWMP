@@ -5,13 +5,13 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
   if (!isOpen || !recipe) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" style={{zIndex: 9}}>
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
         <div className="relative">
           <img
             src={recipe.image}
-            alt={recipe.title}
-            className="w-full h-64 object-cover"
+            alt={recipe.title || recipe.name}
+            className="w-full h-48 object-cover"
           />
           <button
             onClick={onClose}
@@ -21,8 +21,8 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
           </button>
         </div>
         
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{recipe.title}</h2>
+        <div className="p-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">{recipe.title || recipe.name}</h2>
           
           <div className="flex items-center space-x-6 mb-6">
             <div className="flex items-center space-x-2">
@@ -39,50 +39,56 @@ const RecipeDetailModal = ({ isOpen, onClose, recipe }) => {
             </div>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Ingredients</h3>
-              <ul className="space-y-2">
+              <ul className="space-y-1 text-sm">
                 {recipe.extendedIngredients?.map((ingredient, index) => (
                   <li key={index} className="text-gray-700 flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0"></span>
                     <span>{ingredient.amount} {ingredient.unit} {ingredient.name}</span>
                   </li>
                 )) || recipe.ingredients?.map((ingredient, index) => (
                   <li key={index} className="text-gray-700 flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                    <span>{ingredient.amount} {ingredient.unit} {ingredient.name}</span>
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0"></span>
+                    <span>{typeof ingredient === 'string' ? ingredient : `${ingredient.amount || ''} ${ingredient.unit || ''} ${ingredient.name || ingredient}`}</span>
                   </li>
                 )) || (
                   recipe.usedIngredients?.map((ingredient, index) => (
                     <li key={index} className="text-gray-700 flex items-center space-x-2">
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                      <span>{ingredient.name}</span>
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0"></span>
+                      <span>{ingredient.name || ingredient}</span>
                     </li>
                   ))
+                ) || (
+                  <li className="text-gray-500 italic">No ingredients available</li>
                 )}
               </ul>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Instructions</h3>
-              <div className="text-gray-700 max-h-64 overflow-y-auto space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
+              <div className="text-gray-700 max-h-48 overflow-y-auto space-y-2">
                 {recipe.analyzedInstructions?.[0]?.steps?.map((step, index) => (
-                  <div key={index} className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
+                  <div key={index} className="flex gap-2">
+                    <span className="flex-shrink-0 w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
                       {step.number}
                     </span>
                     <p className="text-sm">{step.step}</p>
                   </div>
-                )) || recipe.steps?.map((step, index) => (
-                  <div key={index} className="flex gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
+                )) || recipe.instructions?.map((step, index) => (
+                  <div key={index} className="flex gap-2">
+                    <span className="flex-shrink-0 w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <p className="text-sm">{step}</p>
+                    <p className="text-sm">{typeof step === 'string' ? step : step}</p>
                   </div>
                 )) || (
-                  <div dangerouslySetInnerHTML={{ __html: recipe.instructions || 'No instructions available.' }} />
+                  recipe.instructions ? (
+                    <div className="text-sm" dangerouslySetInnerHTML={{ __html: recipe.instructions }} />
+                  ) : (
+                    <p className="text-gray-500 italic text-sm">No instructions available</p>
+                  )
                 )}
               </div>
               
