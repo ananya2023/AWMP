@@ -111,7 +111,7 @@ exports.createPantryItems = async (req, res) => {
         unit,
         expiry_date: expiryDate,
         notes: notes || '',
-        image_url: image_url || null
+        image_url: image_url || 'https://plus.unsplash.com/premium_photo-1675798983878-604c09f6d154?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
       };
 
       const savedItem = await pantryService.createPantryItem(itemData);
