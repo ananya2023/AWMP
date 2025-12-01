@@ -8,7 +8,7 @@ import SavedRecipes from "../src/app/components/SavedRecipes";
 import RecipeSuggestions from "../src/app/components/RecipeSuggestions";
 import PantryPage from "../src/app/pages/PantryPage";
 import MealPlansPage from "../src/app/pages/MealPlansPage";
-import AuthForm from "../src/app/components/AuthForm";
+import AuthForm from "../src/app/components/Auth/AuthForm";
 import ProtectedRoute from "../src/app/components/ProtectedRoute";
 import { getUserData } from "../src/utils/userStorage";
 

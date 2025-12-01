@@ -9,8 +9,6 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
 // YouTube Data API Key from .env
 const YOUTUBE_API_KEY = import.meta.env.VITE_APP_YOUTUBE_API_KEY;
-console.log("YouTube API Key:", YOUTUBE_API_KEY);
-console.log("Gemini API Key:", import.meta.env.VITE_APP_GEMINI_API_KEY);
 
 const VoiceRecipeAssistant = () => {
   const [transcript, setTranscript] = useState("");
@@ -91,7 +89,6 @@ const VoiceRecipeAssistant = () => {
         throw new Error(errorMessage);
       }
       const data = await response.json();
-      console.log("YouTube API Response:", data);
 
       return data.items.map((item) => ({
         id: item.id.videoId,
@@ -165,7 +162,6 @@ const VoiceRecipeAssistant = () => {
 
       const result = await model.generateContent(conversationAnalysisPrompt);
       const jsonResponseText = await result.response.text();
-      console.log("Gemini Analysis Response JSON:", jsonResponseText);
 
       let analysisResult;
       try {

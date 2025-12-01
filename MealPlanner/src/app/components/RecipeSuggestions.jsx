@@ -200,7 +200,6 @@ const RecipeSuggestions = () => {
 
   const handleRecipeClick = async (recipe) => {
     try {
-      console.log('Recipe clicked:', recipe);
       setSelectedRecipe(recipe);
       setShowModal(true);
       const details = await getRecipeDetails(recipe.id);
