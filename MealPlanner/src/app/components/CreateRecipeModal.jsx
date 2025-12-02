@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, Clock, Users, Tag } from 'lucide-react';
-import { createCustomRecipe, addRecipeToBook } from '../../api/recipeBooksApi';
+import { createCustomRecipe, addRecipeToBook, updateCustomRecipe } from '../../api/recipeBooksApi';
 import Snackbar from './Snackbar';
 
-const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
+const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId, editingRecipe }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -14,6 +14,34 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
     steps: [''],
     notes: ''
   });
+
+  // Load editing recipe data when modal opens
+  React.useEffect(() => {
+    if (isOpen && editingRecipe) {
+      setFormData({
+        name: editingRecipe.title || editingRecipe.name || '',
+        description: editingRecipe.description || '',
+        tags: editingRecipe.tags || [],
+        prep_time: editingRecipe.prep_time || editingRecipe.ready_in_minutes || '',
+        servings: editingRecipe.servings || '',
+        ingredients: editingRecipe.ingredients?.length ? editingRecipe.ingredients : [{ name: '', amount: '', unit: '' }],
+        steps: editingRecipe.steps?.length ? editingRecipe.steps : [''],
+        notes: editingRecipe.notes || ''
+      });
+    } else if (isOpen && !editingRecipe) {
+      // Reset form for new recipe
+      setFormData({
+        name: '',
+        description: '',
+        tags: [],
+        prep_time: '',
+        servings: '',
+        ingredients: [{ name: '', amount: '', unit: '' }],
+        steps: [''],
+        notes: ''
+      });
+    }
+  }, [isOpen, editingRecipe]);
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [newTag, setNewTag] = useState('');
 
@@ -90,7 +118,6 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
 
     try {
       const userData = JSON.parse(localStorage.getItem('user_data'));
-      console.log('User data:', userData);
       
       if (!userData?.user_id) {
         alert('Please log in to create recipes');
@@ -105,19 +132,29 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
         steps: formData.steps.filter(step => step.trim())
       };
       
-      console.log('Recipe payload:', recipePayload);
-      console.log('User ID:', userData.user_id);
+      console.log('Recipe payload being sent:', recipePayload);
+      console.log('Steps in payload:', recipePayload.steps);
       
-      const result = await createCustomRecipe(userData.user_id, recipePayload);
-      console.log('Recipe creation result:', result);
-
-      // If bookId is provided, add the recipe to the book
-      if (bookId && result.data?.id) {
-        try {
-          await addRecipeToBook(bookId, result.data.id);
-          console.log('Recipe added to book successfully');
-        } catch (bookError) {
-          console.error('Error adding recipe to book:', bookError);
+      let result;
+      
+      if (editingRecipe) {
+        // Update existing recipe
+        console.log('Updating recipe with ID:', editingRecipe.id);
+        result = await updateCustomRecipe(editingRecipe.id, recipePayload);
+        console.log('Recipe updated successfully:', result);
+      } else {
+        // Create new recipe
+        result = await createCustomRecipe(userData.user_id, recipePayload);
+        console.log('Recipe created successfully:', result);
+        
+        // If bookId is provided, add the recipe to the book
+        if (bookId && result.data?.id) {
+          try {
+            await addRecipeToBook(bookId, result.data.id);
+            console.log('Recipe added to book successfully');
+          } catch (bookError) {
+            console.error('Error adding recipe to book:', bookError);
+          }
         }
       }
 
@@ -138,9 +175,8 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
       
       setTimeout(() => onClose(), 1500);
     } catch (error) {
-      console.error('Error creating recipe:', error);
-      console.error('Error details:', error.message);
-      alert(`Failed to create recipe: ${error.message}`);
+      console.error('Error with recipe:', error);
+      alert(`Failed to ${editingRecipe ? 'update' : 'create'} recipe: ${error.message}`);
     }
   };
 
@@ -151,7 +187,7 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Create New Recipe</h2>
+            <h2 className="text-xl font-bold text-gray-900">{editingRecipe ? 'Edit Recipe' : 'Create New Recipe'}</h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
               <X className="h-5 w-5" />
             </button>
@@ -322,7 +358,7 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
               Cancel
             </button>
             <button onClick={handleSubmit} className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-              Create Recipe
+              {editingRecipe ? 'Update Recipe' : 'Create Recipe'}
             </button>
           </div>
         </div>
@@ -330,7 +366,7 @@ const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId }) => {
       
       <Snackbar 
         isOpen={showSnackbar}
-        message="Recipe created successfully!"
+        message={editingRecipe ? "Recipe updated successfully!" : "Recipe created successfully!"}
         onClose={() => setShowSnackbar(false)}
       />
     </>

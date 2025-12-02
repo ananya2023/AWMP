@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2, BookOpen, Grid, FolderPlus } from 'lucide-react';
+import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2, BookOpen, Grid, FolderPlus, Edit3, Share2 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import Header from './Header';
 import RecipeDetailModal from './RecipeDetailModal';
@@ -24,6 +24,7 @@ const SavedRecipes = () => {
   const [bookRecipes, setBookRecipes] = useState([]);
   const [bookRecipesLoading, setBookRecipesLoading] = useState(false);
   const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState(null);
 
   useEffect(() => {
     loadSavedRecipes();
@@ -276,6 +277,36 @@ const SavedRecipes = () => {
                       alt={recipe.title}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
                     />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.share({
+                            title: recipe.title,
+                            text: `Check out this recipe: ${recipe.title}`,
+                            url: window.location.href
+                          }).catch(() => {
+                            navigator.clipboard.writeText(`${recipe.title} - ${window.location.href}`);
+                          });
+                        }}
+                        className="p-2 bg-white shadow-lg rounded-full text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                        title="Share Recipe"
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingRecipe(recipe);
+                          setShowCreateRecipeModal(true);
+                        }}
+                        className="p-2 bg-white shadow-lg rounded-full text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
+                        title="Edit Recipe"
+                      >
+                        <Edit3 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors duration-300">
@@ -461,11 +492,13 @@ const SavedRecipes = () => {
         isOpen={showCreateRecipeModal}
         onClose={() => {
           setShowCreateRecipeModal(false);
+          setEditingRecipe(null);
           if (selectedBook) {
-            loadBookRecipes(selectedBook.id); // Refresh book recipes after creating
+            loadBookRecipes(selectedBook.id); // Refresh book recipes after creating/editing
           }
         }}
         bookId={selectedBook?.id}
+        editingRecipe={editingRecipe}
       />
     </>
   );

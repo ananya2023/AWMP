@@ -203,6 +203,10 @@ const getCustomRecipesByUserId = async (userId) => {
 
 const updateCustomRecipe = async (recipeId, updateData) => {
   try {
+    console.log('Service layer - updating recipe:', recipeId);
+    console.log('Service layer - update data:', updateData);
+    console.log('Service layer - steps:', updateData.steps);
+    
     await db.collection('custom_recipes').doc(recipeId).update(updateData);
     return { id: recipeId, ...updateData };
   } catch (error) {

@@ -160,6 +160,10 @@ const updateCustomRecipe = async (req, res) => {
     const { recipeId } = req.params;
     const updateData = { ...req.body, updated_at: new Date() };
 
+    console.log('Updating recipe ID:', recipeId);
+    console.log('Update data received:', updateData);
+    console.log('Steps in update data:', updateData.steps);
+
     const result = await recipeBooksService.updateCustomRecipe(recipeId, updateData);
     res.status(200).json({ message: 'Recipe updated successfully', data: result });
   } catch (error) {
