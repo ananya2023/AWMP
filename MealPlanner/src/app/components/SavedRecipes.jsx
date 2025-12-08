@@ -7,7 +7,7 @@ import CreateRecipeBookModal from './CreateRecipeBookModal';
 import CreateRecipeModal from './CreateRecipeModal';
 import { getSavedRecipes, deleteSavedRecipe } from '../../api/savedRecipesApi';
 import { getRecipeDetails } from '../../api/spoonacularApi';
-import { getRecipeBooks, getRecipesInBook } from '../../api/recipeBooksApi';
+import { getRecipeBooks, getRecipesInBook, createPublicShare } from '../../api/recipeBooksApi';
 
 const SavedRecipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -229,12 +229,33 @@ const SavedRecipes = () => {
                 <p className="text-gray-600 text-sm">{bookRecipes.length} recipes</p>
               </div>
             </div>
-            <button 
-              onClick={() => setShowCreateRecipeModal(true)}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
-            >
-              <span>Add Recipe</span>
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={async () => {
+                  try {
+                    console.log('Creating share for book:', selectedBook.id);
+                    const result = await createPublicShare(selectedBook.id);
+                    console.log('Share result:', result);
+                    const shareUrl = `${window.location.origin}/public/${result.data.share_id}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    alert('Share link copied to clipboard!');
+                  } catch (error) {
+                    console.error('Share error:', error);
+                    alert(`Failed to create share link: ${error.message}`);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Share Book</span>
+              </button>
+              <button 
+                onClick={() => setShowCreateRecipeModal(true)}
+                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+              >
+                <span>Add Recipe</span>
+              </button>
+            </div>
           </div>
 
           {/* Book Recipes Grid */}

@@ -19,4 +19,8 @@ router.get('/recipes', recipeBooksController.getCustomRecipes);
 router.put('/recipes/:recipeId', recipeBooksController.updateCustomRecipe);
 router.delete('/recipes/:recipeId', recipeBooksController.deleteCustomRecipe);
 
+// Public sharing routes
+router.post('/recipe-books/:bookId/share', recipeBooksController.createPublicShare);
+router.get('/public/:shareId', recipeBooksController.getPublicRecipeBook);
+
 module.exports = router;

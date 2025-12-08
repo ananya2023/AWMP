@@ -10,6 +10,7 @@ import PantryPage from "../src/app/pages/PantryPage";
 import MealPlansPage from "../src/app/pages/MealPlansPage";
 import AuthForm from "../src/app/components/Auth/AuthForm";
 import ProtectedRoute from "../src/app/components/ProtectedRoute";
+import PublicRecipeBook from "../src/app/components/PublicRecipeBook";
 import { getUserData } from "../src/utils/userStorage";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/suggestions" element={<ProtectedRoute><RecipeSuggestions /></ProtectedRoute>} />
           <Route path="/pantry" element={<ProtectedRoute><PantryPage /></ProtectedRoute>} />
           <Route path="/meal-plans" element={<ProtectedRoute><MealPlansPage /></ProtectedRoute>} />
+          <Route path="/public/:shareId" element={<PublicRecipeBook />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

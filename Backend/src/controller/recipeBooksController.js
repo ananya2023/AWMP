@@ -184,6 +184,30 @@ const deleteCustomRecipe = async (req, res) => {
   }
 };
 
+const createPublicShare = async (req, res) => {
+  try {
+    const { bookId } = req.params;
+    
+    const result = await recipeBooksService.createPublicShare(bookId);
+    res.status(201).json({ message: 'Public share created successfully', data: result });
+  } catch (error) {
+    console.error('Error creating public share:', error);
+    res.status(500).json({ message: 'Failed to create public share' });
+  }
+};
+
+const getPublicRecipeBook = async (req, res) => {
+  try {
+    const { shareId } = req.params;
+    
+    const result = await recipeBooksService.getPublicRecipeBook(shareId);
+    res.status(200).json({ data: result });
+  } catch (error) {
+    console.error('Error getting public recipe book:', error);
+    res.status(500).json({ message: 'Failed to get public recipe book' });
+  }
+};
+
 module.exports = {
   createRecipeBook,
   getRecipeBooks,
@@ -195,5 +219,7 @@ module.exports = {
   createCustomRecipe,
   getCustomRecipes,
   updateCustomRecipe,
-  deleteCustomRecipe
+  deleteCustomRecipe,
+  createPublicShare,
+  getPublicRecipeBook
 };
