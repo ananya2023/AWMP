@@ -36,8 +36,8 @@ const Header = () => {
       setActiveTab('dashboard');
     } else if (path === '/recipes') {
       setActiveTab('recipes');
-    } else if (path === '/suggestions') {
-      setActiveTab('suggestions');
+    } else if (path === '/recipe-cooks') {
+      setActiveTab('recipe-cooks');
     } else if (path === '/pantry') {
       setActiveTab('pantry');
     } else if (path === '/meal-plans') {
@@ -94,7 +94,7 @@ const Header = () => {
   const menuItems = [
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
     { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => { navigate('/meal-plans'); setActiveTab('meal-plans'); } },
-    { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => { navigate('/suggestions'); setActiveTab('suggestions'); } },
+    { text: 'Recipe Cooking Assistant', icon: <Utensils size={20} />, action: () => { navigate('/recipe-cooks'); setActiveTab('recipe-cooks'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
     { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => { navigate('/pantry'); setActiveTab('pantry'); } },
   ];
@@ -124,8 +124,8 @@ const Header = () => {
         setActiveTab('meal-plans');
         break;
       case 'recipeSuggestions':
-        navigate('/suggestions');
-        setActiveTab('suggestions');
+        navigate('/recipe-cooks');
+        setActiveTab('recipe-cooks');
         break;
       case 'pantry':
         navigate('/pantry');
@@ -140,7 +140,7 @@ const Header = () => {
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'recipes', label: 'Saved Recipes' },
     { id: 'meal-plans', label: 'My Meal Plans' },
-    { id: 'suggestions', label: 'Recipe Suggestions' },
+    { id: 'recipe-cooks', label: 'Recipe Assistant' },
     { id: 'pantry', label: 'Pantry' },
   ];
 
@@ -156,8 +156,8 @@ const Header = () => {
       case 'meal-plans':
         navigate('/meal-plans');
         break;
-      case 'suggestions':
-        navigate('/suggestions');
+      case 'recipe-cooks':
+        navigate('/recipe-cooks');
         break;
       case 'pantry':
         navigate('/pantry');

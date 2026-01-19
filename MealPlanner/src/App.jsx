@@ -1,18 +1,21 @@
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// import Index from "../src/app/pages/Index";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+
+// Pages
 import NotFound from "../src/app/pages/NotFound";
-import Dashboard from "../src/app/pages/Dashboard";
-import SavedRecipes from "./app/components/Recipes/SavedRecipes";
-import RecipeSuggestions from "../src/app/components/RecipeSuggestions";
-import PantryPage from "../src/app/pages/PantryPage";
+import DashboardPage from "../src/app/pages/DashboardPage";
+// import RecipesPage from "./app/pages/RecipesPage";
+// import RecipeBooksPage from "./app/pages/RecipeBooksPage";
 import MealPlansPage from "../src/app/pages/MealPlansPage";
+import PantryPage from "../src/app/pages/PantryPage";
+import MyProfilePage from "./app/pages/MyProfilePage";
+
 import AuthForm from "../src/app/components/Auth/AuthForm";
 import ProtectedRoute from "../src/app/components/ProtectedRoute";
 import PublicRecipeBook from "./app/components/Recipes/PublicRecipeBook";
-import MyProfilePage from "./app/pages/MyProfilePage";
 import { getUserData } from "../src/utils/userStorage";
+
 
 const queryClient = new QueryClient();
 
@@ -21,11 +24,11 @@ const App = () => (
     <BrowserRouter>
       <div className="max-w-full overflow-x-hidden">
         <Routes>
-          <Route path="/" element={getUserData() ? <Navigate to="/dashboard" replace /> : <Dashboard />} />
+          <Route path="/" element={getUserData() ? <Navigate to="/dashboard" replace /> : <DashboardPage />} />
           <Route path="/login" element={<AuthForm />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/recipes" element={<ProtectedRoute><SavedRecipes /></ProtectedRoute>} />
-          <Route path="/suggestions" element={<ProtectedRoute><RecipeSuggestions /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          {/* <Route path="/recipes" element={<ProtectedRoute><RecipesPage /></ProtectedRoute>} /> */}
+          {/* <Route path="/recipe-books" element={<ProtectedRoute><RecipeBooksPage /></ProtectedRoute>} /> */}
           <Route path="/pantry" element={<ProtectedRoute><PantryPage /></ProtectedRoute>} />
           <Route path="/meal-plans" element={<ProtectedRoute><MealPlansPage /></ProtectedRoute>} />
           <Route path="/my-profile" element={<ProtectedRoute><MyProfilePage /></ProtectedRoute>} />
