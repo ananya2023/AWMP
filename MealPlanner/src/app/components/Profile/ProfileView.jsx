@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Edit3, Loader2 } from 'lucide-react';
-import { getUserProfile } from '../../api/userApi';
+import { getUserProfile } from '../../../api/userApi';
 
 const ProfileView = ({ isOpen, onClose, userData, onEdit }) => {
   const [profileData, setProfileData] = useState(userData);

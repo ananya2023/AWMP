@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2, BookOpen, Grid, FolderPlus, Edit3, Share2 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
-import Header from './Header';
-import RecipeDetailModal from './RecipeDetailModal';
+import Header from '../Header';
+import RecipeDetailModal from '../RecipeDetailModal';
 import CreateRecipeBookModal from './CreateRecipeBookModal';
 import CreateRecipeModal from './CreateRecipeModal';
-import { getSavedRecipes, deleteSavedRecipe } from '../../api/savedRecipesApi';
-import { getRecipeDetails } from '../../api/spoonacularApi';
-import { getRecipeBooks, getRecipesInBook, createPublicShare } from '../../api/recipeBooksApi';
+import { getSavedRecipes, deleteSavedRecipe } from '../../../api/savedRecipesApi';
+import { getRecipeDetails } from '../../../api/spoonacularApi';
+import { getRecipeBooks, getRecipesInBook, createPublicShare } from '../../../api/recipeBooksApi';
 
 const SavedRecipes = () => {
   const [searchTerm, setSearchTerm] = useState('');

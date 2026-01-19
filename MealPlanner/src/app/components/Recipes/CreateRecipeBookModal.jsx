@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, BookOpen, Palette, Save, Sparkles, Heart, Zap, Leaf, Coffee, Pizza, Cake } from 'lucide-react';
-import { createRecipeBook } from '../../api/recipeBooksApi';
-import Snackbar from './Snackbar';
+import { createRecipeBook } from '../../../api/recipeBooksApi';
+import Snackbar from '../Snackbar';
 
 const CreateRecipeBookModal = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({

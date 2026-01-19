@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Lightbulb, Loader2 } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getUserProfile } from '../../api/userApi';
+import { getUserProfile } from '../../../api/userApi';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_APP_GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });

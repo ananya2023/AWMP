@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, Clock, Users, Zap, RefreshCw, Heart, ChefHat, Loader2, Search, X } from 'lucide-react';
 import Header from './Header';
-import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import RecipeDetailModal from './RecipeDetailModal';
 import Snackbar from './Snackbar';
 import YouTubeVideoPanel from './YouTubeVideoPanel';

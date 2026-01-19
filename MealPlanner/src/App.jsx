@@ -1,16 +1,17 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "../src/app/pages/Index";
+// import Index from "../src/app/pages/Index";
 import NotFound from "../src/app/pages/NotFound";
 import Dashboard from "../src/app/pages/Dashboard";
-import SavedRecipes from "../src/app/components/SavedRecipes";
+import SavedRecipes from "./app/components/Recipes/SavedRecipes";
 import RecipeSuggestions from "../src/app/components/RecipeSuggestions";
 import PantryPage from "../src/app/pages/PantryPage";
 import MealPlansPage from "../src/app/pages/MealPlansPage";
 import AuthForm from "../src/app/components/Auth/AuthForm";
 import ProtectedRoute from "../src/app/components/ProtectedRoute";
-import PublicRecipeBook from "../src/app/components/PublicRecipeBook";
+import PublicRecipeBook from "./app/components/Recipes/PublicRecipeBook";
+import MyProfilePage from "./app/pages/MyProfilePage";
 import { getUserData } from "../src/utils/userStorage";
 
 const queryClient = new QueryClient();
@@ -20,13 +21,14 @@ const App = () => (
     <BrowserRouter>
       <div className="max-w-full overflow-x-hidden">
         <Routes>
-          <Route path="/" element={getUserData() ? <Navigate to="/dashboard" replace /> : <Index />} />
+          <Route path="/" element={getUserData() ? <Navigate to="/dashboard" replace /> : <Dashboard />} />
           <Route path="/login" element={<AuthForm />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/recipes" element={<ProtectedRoute><SavedRecipes /></ProtectedRoute>} />
           <Route path="/suggestions" element={<ProtectedRoute><RecipeSuggestions /></ProtectedRoute>} />
           <Route path="/pantry" element={<ProtectedRoute><PantryPage /></ProtectedRoute>} />
           <Route path="/meal-plans" element={<ProtectedRoute><MealPlansPage /></ProtectedRoute>} />
+          <Route path="/my-profile" element={<ProtectedRoute><MyProfilePage /></ProtectedRoute>} />
           <Route path="/public/:shareId" element={<PublicRecipeBook />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

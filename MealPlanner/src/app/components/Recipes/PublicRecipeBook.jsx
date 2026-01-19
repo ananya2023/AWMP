@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Clock, Users, ChefHat, Loader2 } from 'lucide-react';
-import { getPublicRecipeBook } from '../../api/recipeBooksApi';
-import RecipeDetailModal from './RecipeDetailModal';
+import { getPublicRecipeBook } from '../../../api/recipeBooksApi';
+import RecipeDetailModal from '../RecipeDetailModal';
 
 const PublicRecipeBook = () => {
   const { shareId } = useParams();

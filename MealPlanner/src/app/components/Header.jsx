@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import SavedRecipes from './SavedRecipes';
+import SavedRecipes from './Recipes/SavedRecipes';
 import MealPlansView from './MealPlansView';
-import Profile from './MyProfile';
-import ProfileView from './ProfileView';
-import Pantry from './Pantry';
-import VoiceRecipeAssistant from './VoiceRecipeAssistant';
-import SmartSubstitutions from './SmartSubstitutions';
+import Profile from './Profile/MyProfile';
+import ProfileView from './Profile/ProfileView';
+import Pantry from './Pantry/Pantry';
+// import VoiceRecipeAssistant from './VoiceRecipeAssistant';
+import SmartSubstitutions from './Profile/SmartSubstitutions';
 import Dashboard from './Dashboard';
-import LogoutConfirmation from './LogoutConfirmation';
+import LogoutConfirmation from './Profile/LogoutConfirmation';
 import Snackbar from './Snackbar';  
 
 const Header = () => {
@@ -100,7 +100,7 @@ const Header = () => {
   ];
 
   const profileMenuItems = [
-    { text: 'Your Profile', icon: <User size={20} />, action: () => setShowProfileView(true) },
+    { text: 'Your Profile', icon: <User size={20} />, action: () => navigate('/my-profile') },
     { text: 'Sign Out', icon: <LogOut size={20} />, action: handleLogoutClick, isLogout: true },
   ];
 
@@ -237,7 +237,7 @@ const Header = () => {
                       
                       <button 
                         onClick={() => {
-                          setShowProfileView(true);
+                          navigate('/my-profile');
                           setShowProfileDropdown(false);
                         }}
                         className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
@@ -445,7 +445,7 @@ const Header = () => {
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <VoiceRecipeAssistant />
+              no no
             </div>
           </div>
         </div>
