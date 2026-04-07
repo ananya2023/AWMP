@@ -14,6 +14,16 @@ export const createUser = async (itemData) => {
   }
 };
 
+export const getUserById = async (user_id) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/users/${user_id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    throw error;
+  }
+};
+
 
 export const getUserProfile = async (user_id) => {
   try {

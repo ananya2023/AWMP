@@ -8,7 +8,6 @@ import ReceiptScanner from '../ReceiptsScanner';
 import { getPantryItems, deletePantryItem, updatePantryItem } from '../../../api/pantryApi';
 
 const Pantry = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUnifiedDialog, setShowUnifiedDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);

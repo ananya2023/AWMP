@@ -3,7 +3,7 @@ import app from "../../../firebase/firebase";
 import provider from "../../../firebase/googleAuthProvider";
 import { useNavigate } from "react-router-dom";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
-import { createUser } from "../../../api/userApi";
+import { createUser, getUserById } from "../../../api/userApi";
 
 const GoogleButton = (email) => {
   const navigate = useNavigate();
@@ -32,25 +32,38 @@ const GoogleButton = (email) => {
         // *** Get the Firebase ID token ***
         const idToken = await user.getIdToken();
 
-        // *** Call your backend API to create user ***
+        // *** Call your backend API to create/get user ***
         try {
-          const userData = {
-            user_id: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            isEmailVerified: user.emailVerified
-          };
+          // First try to get existing user
+          let backendData;
+          try {
+            backendData = await getUserById(user.uid);
+          } catch (error) {
+            // User doesn't exist, create them
+            const userData = {
+              user_id: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              isEmailVerified: user.emailVerified
+            };
+            backendData = await createUser(userData);
+          }
 
-          const backendData = await createUser(userData);
-
-          // Set localStorage regardless of backend response (user might already exist)
-          localStorage.setItem('user_data', JSON.stringify({
+          // Set localStorage with complete user data including pantry_id
+          const userDataToStore = {
             user_id: user.uid,
             email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL
-          }));
+          };
+
+          // Add pantry_id if available from backend
+          if (backendData && backendData.data && backendData.data.user_data) {
+            userDataToStore.pantry_id = backendData.data.user_data.pantry_id;
+          }
+
+          localStorage.setItem('user_data', JSON.stringify(userDataToStore));
           
           // Navigate to dashboard
           navigate("/dashboard");

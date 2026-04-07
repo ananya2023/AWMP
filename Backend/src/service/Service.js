@@ -42,7 +42,7 @@ exports.createUser = async (data) => {
 
     // Check if user already exists
     const existingUserSnapshot = await db.collection('users')
-      .where('user_id', '==', parseInt(user_id))
+      .where('user_id', '==', user_id)
       .limit(1)
       .get();
 
@@ -93,7 +93,7 @@ exports.getUserById = async (user_id) => {
     console.log("Getting user by user_id:", user_id);
     
     const userSnapshot = await db.collection('users')
-      .where('user_id', '==', parseInt(user_id))
+      .where('user_id', '==', user_id)
       .limit(1)
       .get();
     

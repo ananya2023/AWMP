@@ -5,7 +5,7 @@ import { auth, db } from '../../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 import { saveUserData } from '../../../utils/userStorage';
 import { doc, setDoc } from 'firebase/firestore';
-import { createUser } from '../../../api/userApi';
+import { createUser, getUserById } from '../../../api/userApi';
 import GoogleButton from "./GoogleButton";
 
 const AuthForm = () => {
@@ -51,11 +51,41 @@ const AuthForm = () => {
           saveUserData({ user_id, pantry_id });
         }
       } else {
+        // Sign in existing user
         userCredential = await signInWithEmailAndPassword(auth, email, password);
-        saveUserData({
-          user_id: userCredential.user.uid,
-          email: userCredential.user.email
-        });
+        
+        // Fetch user data from backend to get pantry_id
+        try {
+          const backendUserData = await getUserById(userCredential.user.uid);
+          if (backendUserData && backendUserData.data) {
+            const { user_id, pantry_id } = backendUserData.data.user_data;
+            saveUserData({ 
+              user_id, 
+              pantry_id,
+              email: userCredential.user.email 
+            });
+          } else {
+            // User doesn't exist in backend, create them
+            const userData = {
+              user_id: userCredential.user.uid,
+              email: userCredential.user.email,
+              isEmailVerified: userCredential.user.emailVerified
+            };
+            
+            const response = await createUser(userData);
+            if (response && response.data) {
+              const { user_id, pantry_id } = response.data.user_data;
+              saveUserData({ user_id, pantry_id, email: userCredential.user.email });
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          // Fallback - save basic user data
+          saveUserData({
+            user_id: userCredential.user.uid,
+            email: userCredential.user.email
+          });
+        }
       }
       
       navigate('/dashboard');
