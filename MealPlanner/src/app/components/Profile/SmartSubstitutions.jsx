@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getUserProfile } from '../../../api/userApi';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_APP_GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const SmartSubstitutions = () => {
   const [ingredient, setIngredient] = useState('');
@@ -65,11 +65,21 @@ const SmartSubstitutions = () => {
       setSubstitutions(parsedSubstitutions);
     } catch (error) {
       console.error('Error getting substitutions:', error);
-      setSubstitutions([{
-        substitute: "Unable to get substitutions",
-        ratio: "Try again",
-        reason: "Please check your connection and try again"
-      }]);
+      
+      // Check if it's a quota error
+      if (error.message.includes('quota') || error.message.includes('429')) {
+        setSubstitutions([{
+          substitute: "Quota Exceeded",
+          ratio: "Try again later",
+          reason: "Daily API quota exceeded. Please try again tomorrow or upgrade your Gemini API plan."
+        }]);
+      } else {
+        setSubstitutions([{
+          substitute: "Unable to get substitutions",
+          ratio: "Try again",
+          reason: "Please check your connection and try again"
+        }]);
+      }
     } finally {
       setLoading(false);
     }
