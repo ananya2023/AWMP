@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, AlertTriangle, CheckCircle } from 'lucide-react';
-import Snackbar from './Snackbar';
+import Snackbar from './common/Snackbar';
 
 const UpdateStatusDialog = ({ isOpen, onClose, item, onUpdate }) => {
   const [newExpiryDate, setNewExpiryDate] = useState('');

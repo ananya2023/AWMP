@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat } from 'lucide-react';
+import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat, Lightbulb } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import SavedRecipes from './Recipes/SavedRecipes';
@@ -11,7 +11,7 @@ import Pantry from './Pantry/Pantry';
 import SmartSubstitutions from './Profile/SmartSubstitutions';
 import Dashboard from './Dashboard';
 import LogoutConfirmation from './Profile/LogoutConfirmation';
-import Snackbar from './Snackbar';  
+import Snackbar from './common/Snackbar';  
 
 const Header = () => {
   const navigate = useNavigate();
@@ -36,6 +36,8 @@ const Header = () => {
       setActiveTab('dashboard');
     } else if (path === '/recipes') {
       setActiveTab('recipes');
+    } else if (path === '/recipe-suggestions') {
+      setActiveTab('recipe-suggestions');
     } else if (path === '/recipe-cooks') {
       setActiveTab('recipe-cooks');
     } else if (path === '/pantry') {
@@ -93,6 +95,7 @@ const Header = () => {
 
   const menuItems = [
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
+    { text: 'Recipe Suggestions', icon: <Lightbulb size={20} />, action: () => { navigate('/recipe-suggestions'); setActiveTab('recipe-suggestions'); } },
     { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => { navigate('/meal-plans'); setActiveTab('meal-plans'); } },
     { text: 'Recipe Cooking Assistant', icon: <Utensils size={20} />, action: () => { navigate('/recipe-cooks'); setActiveTab('recipe-cooks'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
@@ -138,9 +141,9 @@ const Header = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'recipes', label: 'Saved Recipes' },
-    { id: 'meal-plans', label: 'My Meal Plans' },
-    { id: 'recipe-cooks', label: 'Recipe Assistant' },
+    { id: 'recipes', label: 'Recipes' },
+    { id: 'recipe-suggestions', label: 'Suggestions' },
+    { id: 'meal-plans', label: 'Meal Plans' },
     { id: 'pantry', label: 'Pantry' },
   ];
 
@@ -153,11 +156,11 @@ const Header = () => {
       case 'recipes':
         navigate('/recipes');
         break;
+      case 'recipe-suggestions':
+        navigate('/recipe-suggestions');
+        break;
       case 'meal-plans':
         navigate('/meal-plans');
-        break;
-      case 'recipe-cooks':
-        navigate('/recipe-cooks');
         break;
       case 'pantry':
         navigate('/pantry');

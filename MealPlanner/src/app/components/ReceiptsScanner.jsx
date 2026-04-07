@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Camera, CheckCircle, Edit3, Calendar, Trash2, StickyNote, X } from 'lucide-react';
 import Lottie from 'lottie-react';
 import { addPantryItems, getScannedItems } from '../../api/pantryApi';
-import Snackbar from './Snackbar';
+import Snackbar from './common/Snackbar';
 
 const VALID_CATEGORIES = [
   'Proteins', 'Dairy', 'Vegetables', 'Grains',

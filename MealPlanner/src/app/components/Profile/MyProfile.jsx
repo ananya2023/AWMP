@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, User } from 'lucide-react';
 import { updateUserProfile, getUserProfile } from '../../../api/userApi'; // Adjust path accordingly
-import Snackbar from '../Snackbar';
+import Snackbar from '../common/Snackbar';
 
 const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Eggetarian' , 'Jain', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free' , 'High-Protein' , 'Any'];
 const ALLERGIES_OPTIONS = ['Nuts', 'Gluten', 'Dairy', 'Seafood', 'Eggs', 'Soy'];

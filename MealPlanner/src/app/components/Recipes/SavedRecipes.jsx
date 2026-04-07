@@ -119,7 +119,7 @@ const SavedRecipes = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <div className="max-w-screen-2xl mx-auto px-6 pt-16 pb-8 space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

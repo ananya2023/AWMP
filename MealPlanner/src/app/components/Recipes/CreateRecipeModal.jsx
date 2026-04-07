@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Minus, Clock, Users, Tag } from 'lucide-react';
 import { createCustomRecipe, addRecipeToBook, updateCustomRecipe } from '../../../api/recipeBooksApi';
-import Snackbar from '../Snackbar';
+import Snackbar from '../common/Snackbar';
 
 const CreateRecipeModal = ({ isOpen, onClose, onRecipeCreated, bookId, editingRecipe }) => {
   const [formData, setFormData] = useState({
