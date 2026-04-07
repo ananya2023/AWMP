@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, FileText, Camera, Plus } from 'lucide-react';
 import AddItemDialog from './AddItemDialog';
-import ReceiptScanner from './ReceiptsScanner';
+import ReceiptScanner from '../ReceiptsScanner';
 
 const UnifiedAddItemDialog = ({ isOpen, onClose, onItemsAdded }) => {
   const [activeTab, setActiveTab] = useState('manual');

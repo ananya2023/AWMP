@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Package, AlertTriangle, Plus, Search, Calendar, Trash2, Edit3, ChevronDown, Camera, FileText } from 'lucide-react';
-import AddItemDialog from '../AddItemDialog';
+import AddItemDialog from './AddItemDialog';
 import EditItemDialog from '../EditItemDialog';
 import UpdateStatusDialog from '../UpdateStatusDialog';
-import UnifiedAddItemDialog from '../UnifiedAddItemDialog';
+import UnifiedAddItemDialog from './UnifiedAddItemDialog';
 import ReceiptScanner from '../ReceiptsScanner';
 import { getPantryItems, deletePantryItem, updatePantryItem } from '../../../api/pantryApi';
 
