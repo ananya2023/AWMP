@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import app from "../../firebase/firebase";
-import provider from "../../firebase/googleAuthProvider";
+import app from "../../../firebase/firebase";
+import provider from "../../../firebase/googleAuthProvider";
 import { useNavigate } from "react-router-dom";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { createUser } from "../../../api/userApi";
 
 const GoogleButton = (email) => {
   const navigate = useNavigate();
@@ -12,8 +13,6 @@ const GoogleButton = (email) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // You might want to add a check here to ensure the user document
-        // is created in Firestore before navigating, or handle it in your home page component.
         navigate("/dashboard");
       }
     });
@@ -21,7 +20,6 @@ const GoogleButton = (email) => {
   }, [auth, navigate]);
 
   const handleGoogleSignIn = () => {
-    console.log("Google sign in clicked");
     signInWithPopup(auth, provider)
       .then(async (result) => { // Added async here to use await
         // This gives you a Google Access Token. You can use it to access the Google API.
@@ -30,51 +28,43 @@ const GoogleButton = (email) => {
 
         // The signed-in user info.
         const user = result.user;
-        console.log(user , "userrrrrrrrrr")
 
         // *** Get the Firebase ID token ***
         const idToken = await user.getIdToken();
-        console.log("Firebase ID Token:", idToken);
 
-        // *** Call your backend API ***
+        // *** Call your backend API to create user ***
         try {
-          const backendResponse = await fetch(`http://localhost:5000/api/auth/postLogin`, { // Replace with your backend URL
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              // Include the Firebase ID token in the Authorization header
-              'Authorization': `Bearer ${idToken}`,
-            },
-            body: JSON.stringify({
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-              photoURL: user.photoURL,
-              // Include any other initial user data you need on the backend
-            }),
-            credentials: 'include',
+          const userData = {
+            user_id: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            isEmailVerified: user.emailVerified
+          };
+
+          const backendData = await createUser(userData);
+
+          // Set localStorage regardless of backend response (user might already exist)
+          localStorage.setItem('user_data', JSON.stringify({
+            user_id: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          }));
           
-          });
-
-          const backendData = await backendResponse.json();
-
-          if (backendResponse.ok) {
-            console.log('Backend processed user login:', backendData);
-            localStorage.setItem('user_data', JSON.stringify({
-              user_id: user.uid,
-              email: user.email,
-              displayName: user.displayName
-            }));
-            // Now that the backend has processed the user, navigate
-            navigate("/dashboard");
-          } else {
-            console.error('Backend error processing user login:', backendData.message);
-            // Handle backend errors (e.g., display an error message to the user)
-          }
+          // Navigate to dashboard
+          navigate("/dashboard");
 
         } catch (backendError) {
           console.error('Error calling backend API:', backendError);
-          // Handle errors during the backend API call
+          // Still set localStorage and navigate even if backend fails
+          localStorage.setItem('user_data', JSON.stringify({
+            user_id: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL
+          }));
+          navigate("/dashboard");
         }
 
       }).catch((error) => {

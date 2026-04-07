@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from '../components/Header';
-import Pantry from '../components/Pantry';
+import Pantry from '../components/Pantry/Pantry';
 
 const PantryPage = () => {
   return (

@@ -1,15 +1,69 @@
 import React, { useState } from 'react';
-import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star, Loader2 } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../../../firebase/firebase';
+import { useNavigate } from 'react-router-dom';
+import { saveUserData } from '../../../utils/userStorage';
+import { doc, setDoc } from 'firebase/firestore';
+import { createUser } from '../../../api/userApi';
+import GoogleButton from "./GoogleButton";
 
-const Login = () => {
+const AuthForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password, isSignUp });
+    setLoading(true);
+    setError('');
+
+    try {
+      let userCredential;
+      if (isSignUp) {
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Create user in backend
+        const userData = {
+          user_id: userCredential.user.uid,
+          email: userCredential.user.email,
+          isEmailVerified: userCredential.user.emailVerified
+        };
+        
+        const response = await createUser(userData);
+        
+        if (response && response.data) {
+          const { user_id, pantry_id } = response.data.user_data;
+          
+          // Save to Firestore
+          await setDoc(doc(db, "users", userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            createdAt: new Date(),
+            isEmailVerified: userCredential.user.emailVerified,
+            pantry_id: pantry_id
+          });
+          
+          saveUserData({ user_id, pantry_id });
+        }
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+        saveUserData({
+          user_id: userCredential.user.uid,
+          email: userCredential.user.email
+        });
+      }
+      
+      navigate('/dashboard');
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const stats = [
@@ -19,14 +73,13 @@ const Login = () => {
   ];
 
   const features = [
-    'AI-powered meal planning',
     'Smart pantry management', 
     'Recipe recommendations',
-    'Waste tracking & analytics'
+    'Save Money'
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 relative overflow-hidden p-6">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl animate-pulse"></div>
@@ -45,9 +98,9 @@ const Login = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                  AWMP
+                  Cooksy
                 </h1>
-                <p className="text-sm text-gray-600">Smart Kitchen Meal Planner</p>
+                <p className="text-sm text-gray-600">Boss your Kitchen</p>
               </div>
             </div>
 
@@ -61,7 +114,7 @@ const Login = () => {
               </h2>
               
               <p className="text-xl text-gray-600 leading-relaxed">
-                Join thousands who've revolutionized their cooking with AI-powered meal planning, 
+                Join thousands who've revolutionized their cooking with Personalised meal planning, 
                 smart pantry management, and zero-waste solutions.
               </p>
 
@@ -75,6 +128,21 @@ const Login = () => {
                     <span className="text-gray-700 font-medium">{feature}</span>
                   </div>
                 ))}
+              </div>
+
+              {/* Hero Image */}
+              <div className="relative mb-8">
+                <div className="w-full h-64 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl overflow-hidden shadow-2xl">
+                  <img 
+                    src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                    alt="Smart Kitchen" 
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <p className="text-sm font-medium">Smart Kitchen Technology</p>
+                  </div>
+                </div>
               </div>
 
               {/* Stats */}
@@ -95,7 +163,7 @@ const Login = () => {
 
         {/* Right Side - Login Form */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-xl">
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center space-x-3 mb-8">
               <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl shadow-lg">
@@ -107,10 +175,10 @@ const Login = () => {
             </div>
 
             {/* Form Card */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-12">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                  {isSignUp ? 'Join AWMP' : 'Welcome Back'}
+                  {isSignUp ? 'Join Cooksy' : 'Welcome Back'}
                 </h2>
                 <p className="text-gray-600">
                   {isSignUp 
@@ -118,6 +186,11 @@ const Login = () => {
                     : 'Continue your culinary adventure'
                   }
                 </p>
+                {error && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                    {error}
+                  </div>
+                )}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -175,10 +248,17 @@ const Login = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-4 rounded-2xl hover:from-emerald-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold py-4 rounded-2xl hover:from-emerald-600 hover:to-teal-600 transform hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    </>
+                  )}
                 </button>
 
                 {/* Toggle Sign Up/In */}
@@ -197,6 +277,10 @@ const Login = () => {
               </form>
             </div>
 
+              <div className="mt-4">
+                <GoogleButton />
+              </div>
+
             {/* Trust Indicators */}
             <div className="mt-8 text-center">
               <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
@@ -211,4 +295,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AuthForm;

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import DashboardComponent from '../components/Dashboard';
 
-const Dashboard = () => {
+const DashboardPage = () => {
   const navigate = useNavigate();
 
   const handleDashboardNavigation = (view) => {
@@ -33,4 +33,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

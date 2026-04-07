@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, ImagePlus, X } from 'lucide-react';
 import { addPantryItems } from '../../api/pantryApi';
 import { getUserCategories, addUserCategory } from '../../api/categoriesApi';
-import Snackbar from './Snackbar';
+import Snackbar from './common/Snackbar';
 
 const CATEGORIES = [
   { id: 'Proteins', label: 'Proteins', emoji: '🥩', image: 'https://images.pexels.com/photos/361184/asparagus-steak-veal-steak-veal-361184.jpeg?auto=compress&cs=tinysrgb&w=150' },

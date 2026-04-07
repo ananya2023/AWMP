@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, ChevronDown } from 'lucide-react';
-import { updateUserProfile, getUserProfile } from '../../api/userApi'; // Adjust path accordingly
-import Snackbar from './Snackbar';
+import { X, User } from 'lucide-react';
+import { updateUserProfile, getUserProfile } from '../../../api/userApi'; // Adjust path accordingly
+import Snackbar from '../common/Snackbar';
 
-const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free'];
+const DIETARY_OPTIONS = ['Vegetarian', 'Vegan', 'Eggetarian' , 'Jain', 'Keto', 'Paleo', 'Gluten-Free', 'Dairy-Free' , 'High-Protein' , 'Any'];
 const ALLERGIES_OPTIONS = ['Nuts', 'Gluten', 'Dairy', 'Seafood', 'Eggs', 'Soy'];
 
-const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
+const MyProfile = ({ isOpen, onClose, userData, onSave, isPage = false }) => {
   const [formData, setFormData] = useState({ ...userData });
   const [showSnackbar, setShowSnackbar] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,21 +78,21 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
 
   if (!isOpen) return null;
 
-  return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden">
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
-            <button 
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+  const ProfileContent = () => (
+    <div className={isPage ? "bg-white rounded-lg shadow-lg" : "bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden"}>
+      {!isPage && (
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900">Edit Profile</h2>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
+    
+      <div className={`p-6 overflow-y-auto ${isPage ? "" : "max-h-[calc(90vh-140px)]"}`}>
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-gray-500">Loading profile...</div>
@@ -237,22 +237,44 @@ const MyProfile = ({ isOpen, onClose, userData, onSave }) => {
           )}
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-gray-200">
-          <button 
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Save Changes
-          </button>
-        </div>
-        </div>
+        {!isPage && (
+          <div className="flex gap-3 p-6 border-t border-gray-200">
+            <button 
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleSubmit}
+              className="flex-1 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
+        {isPage && (
+          <div className="flex gap-3 p-6 border-t border-gray-200">
+            <button 
+              onClick={handleSubmit}
+              className="px-6 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
+  );
+
+  return (
+    <>
+      {isPage ? (
+        <ProfileContent />
+      ) : (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <ProfileContent />
+        </div>
+      )}
       <Snackbar 
         isOpen={showSnackbar}
         message="Profile updated successfully!"

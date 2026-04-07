@@ -231,3 +231,40 @@ export const deleteCustomRecipe = async (recipeId) => {
     throw error;
   }
 };
+
+export const createPublicShare = async (bookId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/recipe-books/${bookId}/share`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create public share');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating public share:', error);
+    throw error;
+  }
+};
+
+export const getPublicRecipeBook = async (shareId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/public/${shareId}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to get public recipe book');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting public recipe book:', error);
+    throw error;
+  }
+};

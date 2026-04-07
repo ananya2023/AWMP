@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Lightbulb, Clock, Users, Zap, RefreshCw, Heart, ChefHat, Loader2, Search, X } from 'lucide-react';
-import Header from './Header';
-import VoiceRecipeAssistant from './VoiceRecipeAssistant';
 import RecipeDetailModal from './RecipeDetailModal';
-import Snackbar from './Snackbar';
+import Snackbar from '../components/common/Snackbar';
 import YouTubeVideoPanel from './YouTubeVideoPanel';
 import { getAuth } from 'firebase/auth';
 import { getRandomRecipes, searchRecipes, getRecipesByIngredients, getRecipeDetails, getRecipesByType } from '../../api/spoonacularApi';
@@ -200,7 +198,6 @@ const RecipeSuggestions = () => {
 
   const handleRecipeClick = async (recipe) => {
     try {
-      console.log('Recipe clicked:', recipe);
       setSelectedRecipe(recipe);
       setShowModal(true);
       const details = await getRecipeDetails(recipe.id);
@@ -243,7 +240,6 @@ const RecipeSuggestions = () => {
 
   return (
     <>
-      <Header />
       <div className="max-w-screen-2xl mx-auto px-6 pt-16 pb-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -264,7 +260,7 @@ const RecipeSuggestions = () => {
               <Lightbulb className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered Insights</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Pantry Insights</h3>
               <p className="text-gray-700 mb-3">
                 {selectedCategory === 'pantry-based' ? (
                   pantryInsights.expiringItems.length > 0 ? (

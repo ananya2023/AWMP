@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2, BookOpen, Grid, FolderPlus } from 'lucide-react';
+import { Search, Filter, Heart, Clock, Users, Star, Sparkles, ChefHat, Zap, Loader2, BookOpen, Grid, FolderPlus, Edit3, Share2 } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
-import Header from './Header';
-import RecipeDetailModal from './RecipeDetailModal';
+import Header from '../Header';
+import RecipeDetailModal from '../RecipeDetailModal';
 import CreateRecipeBookModal from './CreateRecipeBookModal';
 import CreateRecipeModal from './CreateRecipeModal';
-import { getSavedRecipes, deleteSavedRecipe } from '../../api/savedRecipesApi';
-import { getRecipeDetails } from '../../api/spoonacularApi';
-import { getRecipeBooks, getRecipesInBook } from '../../api/recipeBooksApi';
+import { getSavedRecipes, deleteSavedRecipe } from '../../../api/savedRecipesApi';
+import { getRecipeDetails } from '../../../api/spoonacularApi';
+import { getRecipeBooks, getRecipesInBook, createPublicShare } from '../../../api/recipeBooksApi';
 
 const SavedRecipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +24,7 @@ const SavedRecipes = () => {
   const [bookRecipes, setBookRecipes] = useState([]);
   const [bookRecipesLoading, setBookRecipesLoading] = useState(false);
   const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
+  const [editingRecipe, setEditingRecipe] = useState(null);
 
   useEffect(() => {
     loadSavedRecipes();
@@ -118,7 +119,7 @@ const SavedRecipes = () => {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <div className="max-w-screen-2xl mx-auto px-6 pt-16 pb-8 space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -228,12 +229,33 @@ const SavedRecipes = () => {
                 <p className="text-gray-600 text-sm">{bookRecipes.length} recipes</p>
               </div>
             </div>
-            <button 
-              onClick={() => setShowCreateRecipeModal(true)}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
-            >
-              <span>Add Recipe</span>
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={async () => {
+                  try {
+                    console.log('Creating share for book:', selectedBook.id);
+                    const result = await createPublicShare(selectedBook.id);
+                    console.log('Share result:', result);
+                    const shareUrl = `${window.location.origin}/public/${result.data.share_id}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    alert('Share link copied to clipboard!');
+                  } catch (error) {
+                    console.error('Share error:', error);
+                    alert(`Failed to create share link: ${error.message}`);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              >
+                <Share2 className="h-4 w-4" />
+                <span>Share Book</span>
+              </button>
+              <button 
+                onClick={() => setShowCreateRecipeModal(true)}
+                className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center space-x-2"
+              >
+                <span>Add Recipe</span>
+              </button>
+            </div>
           </div>
 
           {/* Book Recipes Grid */}
@@ -276,6 +298,36 @@ const SavedRecipes = () => {
                       alt={recipe.title}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
                     />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.share({
+                            title: recipe.title,
+                            text: `Check out this recipe: ${recipe.title}`,
+                            url: window.location.href
+                          }).catch(() => {
+                            navigator.clipboard.writeText(`${recipe.title} - ${window.location.href}`);
+                          });
+                        }}
+                        className="p-2 bg-white shadow-lg rounded-full text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                        title="Share Recipe"
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingRecipe(recipe);
+                          setShowCreateRecipeModal(true);
+                        }}
+                        className="p-2 bg-white shadow-lg rounded-full text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200"
+                        title="Edit Recipe"
+                      >
+                        <Edit3 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors duration-300">
@@ -461,11 +513,13 @@ const SavedRecipes = () => {
         isOpen={showCreateRecipeModal}
         onClose={() => {
           setShowCreateRecipeModal(false);
+          setEditingRecipe(null);
           if (selectedBook) {
-            loadBookRecipes(selectedBook.id); // Refresh book recipes after creating
+            loadBookRecipes(selectedBook.id); // Refresh book recipes after creating/editing
           }
         }}
         bookId={selectedBook?.id}
+        editingRecipe={editingRecipe}
       />
     </>
   );

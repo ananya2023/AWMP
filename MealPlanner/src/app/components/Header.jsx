@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat } from 'lucide-react';
+import { Leaf, Menu, Bell, User, BookOpen, Calendar, Utensils, ShoppingCart, RefreshCw, Search, X, LogOut, ChefHat, Lightbulb } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
-import SavedRecipes from './SavedRecipes';
+import SavedRecipes from './Recipes/SavedRecipes';
 import MealPlansView from './MealPlansView';
-import Profile from './MyProfile';
-import ProfileView from './ProfileView';
-import Pantry from './Pantry';
-import VoiceRecipeAssistant from './VoiceRecipeAssistant';
-import SmartSubstitutions from './SmartSubstitutions';
+import Profile from './Profile/MyProfile';
+import ProfileView from './Profile/ProfileView';
+import Pantry from './Pantry/Pantry';
+// import VoiceRecipeAssistant from './VoiceRecipeAssistant';
+import SmartSubstitutions from './Profile/SmartSubstitutions';
 import Dashboard from './Dashboard';
-import LogoutConfirmation from './LogoutConfirmation';
-import Snackbar from './Snackbar';  
+import LogoutConfirmation from './Profile/LogoutConfirmation';
+import Snackbar from './common/Snackbar';  
 
 const Header = () => {
   const navigate = useNavigate();
@@ -36,8 +36,10 @@ const Header = () => {
       setActiveTab('dashboard');
     } else if (path === '/recipes') {
       setActiveTab('recipes');
-    } else if (path === '/suggestions') {
-      setActiveTab('suggestions');
+    } else if (path === '/recipe-suggestions') {
+      setActiveTab('recipe-suggestions');
+    } else if (path === '/recipe-cooks') {
+      setActiveTab('recipe-cooks');
     } else if (path === '/pantry') {
       setActiveTab('pantry');
     } else if (path === '/meal-plans') {
@@ -93,14 +95,15 @@ const Header = () => {
 
   const menuItems = [
     { text: 'Saved Recipes', icon: <BookOpen size={20} />, action: () => { navigate('/recipes'); setActiveTab('recipes'); } },
+    { text: 'Recipe Suggestions', icon: <Lightbulb size={20} />, action: () => { navigate('/recipe-suggestions'); setActiveTab('recipe-suggestions'); } },
     { text: 'My Meal Plans', icon: <Calendar size={20} />, action: () => { navigate('/meal-plans'); setActiveTab('meal-plans'); } },
-    { text: 'Recipe Suggestions', icon: <Utensils size={20} />, action: () => { navigate('/suggestions'); setActiveTab('suggestions'); } },
+    { text: 'Recipe Cooking Assistant', icon: <Utensils size={20} />, action: () => { navigate('/recipe-cooks'); setActiveTab('recipe-cooks'); } },
     { text: 'Smart Substitutions', icon: <RefreshCw size={20} />, action: () => setShowSubstitutions(true) },
     { text: 'Pantry', icon: <ShoppingCart size={20} />, action: () => { navigate('/pantry'); setActiveTab('pantry'); } },
   ];
 
   const profileMenuItems = [
-    { text: 'Your Profile', icon: <User size={20} />, action: () => setShowProfileView(true) },
+    { text: 'Your Profile', icon: <User size={20} />, action: () => navigate('/my-profile') },
     { text: 'Sign Out', icon: <LogOut size={20} />, action: handleLogoutClick, isLogout: true },
   ];
 
@@ -124,8 +127,8 @@ const Header = () => {
         setActiveTab('meal-plans');
         break;
       case 'recipeSuggestions':
-        navigate('/suggestions');
-        setActiveTab('suggestions');
+        navigate('/recipe-cooks');
+        setActiveTab('recipe-cooks');
         break;
       case 'pantry':
         navigate('/pantry');
@@ -138,9 +141,9 @@ const Header = () => {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard' },
-    { id: 'recipes', label: 'Saved Recipes' },
-    { id: 'meal-plans', label: 'My Meal Plans' },
-    { id: 'suggestions', label: 'Recipe Suggestions' },
+    { id: 'recipes', label: 'Recipes' },
+    { id: 'recipe-suggestions', label: 'Suggestions' },
+    { id: 'meal-plans', label: 'Meal Plans' },
     { id: 'pantry', label: 'Pantry' },
   ];
 
@@ -153,11 +156,11 @@ const Header = () => {
       case 'recipes':
         navigate('/recipes');
         break;
+      case 'recipe-suggestions':
+        navigate('/recipe-suggestions');
+        break;
       case 'meal-plans':
         navigate('/meal-plans');
-        break;
-      case 'suggestions':
-        navigate('/suggestions');
         break;
       case 'pantry':
         navigate('/pantry');
@@ -237,7 +240,7 @@ const Header = () => {
                       
                       <button 
                         onClick={() => {
-                          setShowProfileView(true);
+                          navigate('/my-profile');
                           setShowProfileDropdown(false);
                         }}
                         className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center space-x-3 transition-colors duration-200"
@@ -445,7 +448,7 @@ const Header = () => {
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              <VoiceRecipeAssistant />
+              no no
             </div>
           </div>
         </div>

@@ -203,6 +203,10 @@ const getCustomRecipesByUserId = async (userId) => {
 
 const updateCustomRecipe = async (recipeId, updateData) => {
   try {
+    console.log('Service layer - updating recipe:', recipeId);
+    console.log('Service layer - update data:', updateData);
+    console.log('Service layer - steps:', updateData.steps);
+    
     await db.collection('custom_recipes').doc(recipeId).update(updateData);
     return { id: recipeId, ...updateData };
   } catch (error) {
@@ -220,6 +224,62 @@ const deleteCustomRecipe = async (recipeId) => {
   }
 };
 
+const createPublicShare = async (bookId) => {
+  try {
+    const shareId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    
+    const shareData = {
+      book_id: bookId,
+      share_id: shareId,
+      created_at: new Date(),
+      is_active: true
+    };
+
+    await db.collection('public_shares').doc(shareId).set(shareData);
+    return { share_id: shareId, ...shareData };
+  } catch (error) {
+    console.error('Error creating public share:', error);
+    throw error;
+  }
+};
+
+const getPublicRecipeBook = async (shareId) => {
+  try {
+    const shareDoc = await db.collection('public_shares').doc(shareId).get();
+    
+    if (!shareDoc.exists || !shareDoc.data().is_active) {
+      throw new Error('Share not found or inactive');
+    }
+
+    const bookId = shareDoc.data().book_id;
+    
+    const [bookDoc, recipes] = await Promise.all([
+      db.collection(RECIPE_BOOKS_COLLECTION).doc(bookId).get(),
+      getRecipesInBook(bookId)
+    ]);
+
+    if (!bookDoc.exists) {
+      throw new Error('Recipe book not found');
+    }
+
+    const bookData = { id: bookDoc.id, ...bookDoc.data() };
+    if (bookData.created_at?.toDate) {
+      bookData.created_at = bookData.created_at.toDate().toISOString();
+    }
+
+    // Set default user name since user data not stored in DB
+    bookData.user_name = 'Chef';
+
+    return {
+      book: bookData,
+      recipes: recipes
+    };
+  } catch (error) {
+    console.error('Error getting public recipe book:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   createRecipeBook,
   getRecipeBooksByUserId,
@@ -231,5 +291,7 @@ module.exports = {
   createCustomRecipe,
   getCustomRecipesByUserId,
   updateCustomRecipe,
-  deleteCustomRecipe
+  deleteCustomRecipe,
+  createPublicShare,
+  getPublicRecipeBook
 };
