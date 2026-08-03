@@ -5,7 +5,7 @@ import { auth, db } from '../../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 import { saveUserData } from '../../../utils/userStorage';
 import { doc, setDoc } from 'firebase/firestore';
-import { createUser } from '../../../api/userApi';
+import { createUser, syncUser } from '../../../api/userApi';
 import GoogleButton from "./GoogleButton";
 
 const AuthForm = () => {
@@ -17,6 +17,26 @@ const AuthForm = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const getFriendlyErrorMessage = (err) => {
+    const code = err?.code;
+    switch (code) {
+      case 'auth/invalid-credential':
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+        return 'Invalid email or password. Please check your credentials and try again.';
+      case 'auth/email-already-in-use':
+        return 'An account with this email already exists. Please sign in instead.';
+      case 'auth/weak-password':
+        return 'Password is too weak. Please use a password with at least 6 characters.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
+      case 'auth/too-many-requests':
+        return 'Too many failed login attempts. Please wait a moment and try again.';
+      default:
+        return err?.message ? err.message.replace(/^Firebase:\s*/i, '') : 'An error occurred. Please try again.';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,41 +46,35 @@ const AuthForm = () => {
       let userCredential;
       if (isSignUp) {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        
-        // Create user in backend
-        const userData = {
+      } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+      }
+
+      // Sync user with backend to ensure user record & pantry_id exist
+      let pantryId = null;
+      try {
+        const response = await syncUser({
           user_id: userCredential.user.uid,
           email: userCredential.user.email,
           isEmailVerified: userCredential.user.emailVerified
-        };
-        
-        const response = await createUser(userData);
-        
-        if (response && response.data) {
-          const { user_id, pantry_id } = response.data.user_data;
-          
-          // Save to Firestore
-          await setDoc(doc(db, "users", userCredential.user.uid), {
-            uid: userCredential.user.uid,
-            email: userCredential.user.email,
-            createdAt: new Date(),
-            isEmailVerified: userCredential.user.emailVerified,
-            pantry_id: pantry_id
-          });
-          
-          saveUserData({ user_id, pantry_id });
-        }
-      } else {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-        saveUserData({
-          user_id: userCredential.user.uid,
-          email: userCredential.user.email
         });
+        if (response && response.data && response.data.user_data) {
+          pantryId = response.data.user_data.pantry_id;
+        }
+      } catch (syncErr) {
+        console.warn("Backend user sync warning:", syncErr);
       }
-      
+
+      saveUserData({
+        user_id: userCredential.user.uid,
+        email: userCredential.user.email,
+        pantry_id: pantryId
+      });
+
       navigate('/dashboard');
     } catch (error) {
-      setError(error.message);
+      console.error('Authentication error:', error);
+      setError(getFriendlyErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -73,7 +87,7 @@ const AuthForm = () => {
   ];
 
   const features = [
-    'Smart pantry management', 
+    'Smart pantry management',
     'Recipe recommendations',
     'Save Money'
   ];
@@ -112,9 +126,9 @@ const AuthForm = () => {
                   Kitchen Experience
                 </span>
               </h2>
-              
+
               <p className="text-xl text-gray-600 leading-relaxed">
-                Join thousands who've revolutionized their cooking with Personalised meal planning, 
+                Join thousands who've revolutionized their cooking with Personalised meal planning,
                 smart pantry management, and zero-waste solutions.
               </p>
 
@@ -133,9 +147,9 @@ const AuthForm = () => {
               {/* Hero Image */}
               <div className="relative mb-8">
                 <div className="w-full h-64 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-3xl overflow-hidden shadow-2xl">
-                  <img 
-                    src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
-                    alt="Smart Kitchen" 
+                  <img
+                    src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Smart Kitchen"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/50 to-transparent"></div>
@@ -181,8 +195,8 @@ const AuthForm = () => {
                   {isSignUp ? 'Join Cooksy' : 'Welcome Back'}
                 </h2>
                 <p className="text-gray-600">
-                  {isSignUp 
-                    ? 'Start your smart cooking journey today' 
+                  {isSignUp
+                    ? 'Start your smart cooking journey today'
                     : 'Continue your culinary adventure'
                   }
                 </p>
@@ -261,6 +275,19 @@ const AuthForm = () => {
                   )}
                 </button>
 
+                {/* Divider */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-3 bg-white text-gray-500 rounded-full font-medium">Or continue with</span>
+                  </div>
+                </div>
+
+                {/* Google Sign In Button */}
+                <GoogleButton />
+
                 {/* Toggle Sign Up/In */}
                 <div className="text-center pt-6 border-t border-gray-100">
                   <span className="text-gray-600">
@@ -276,10 +303,6 @@ const AuthForm = () => {
                 </div>
               </form>
             </div>
-
-              <div className="mt-4">
-                <GoogleButton />
-              </div>
 
             {/* Trust Indicators */}
             <div className="mt-8 text-center">

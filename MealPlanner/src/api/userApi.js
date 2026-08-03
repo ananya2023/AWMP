@@ -14,6 +14,15 @@ export const createUser = async (itemData) => {
   }
 };
 
+export const syncUser = async (userData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/sync-user`, userData);
+    return response.data;
+  } catch (error) {
+    console.error('Error syncing user:', error);
+    throw error;
+  }
+};
 
 export const getUserProfile = async (user_id) => {
   try {
