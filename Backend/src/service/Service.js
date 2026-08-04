@@ -41,8 +41,9 @@ exports.createUser = async (data) => {
     }
 
     // Check if user already exists
+    const queryId = isNaN(user_id) ? user_id : parseInt(user_id);
     const existingUserSnapshot = await db.collection('users')
-      .where('user_id', '==', parseInt(user_id))
+      .where('user_id', '==', queryId)
       .limit(1)
       .get();
 
@@ -85,6 +86,90 @@ exports.createUser = async (data) => {
   } catch (error) {
     console.error("Error creating user:", error);
     throw new Error(`Error creating user: ${error.message}`);
+  }
+};
+
+exports.syncUser = async (data) => {
+  try {
+    const { user_id, email, displayName, photoURL, isEmailVerified } = data;
+    if (!email || !user_id) {
+      throw new Error('Missing required fields: email and user_id');
+    }
+
+    console.log("Syncing user:", user_id, email);
+
+    // 1. Search for existing user by user_id, uid, or email
+    let existingUserDoc = null;
+
+    let snapshot = await db.collection('users').where('user_id', '==', user_id).limit(1).get();
+    if (!snapshot.empty) {
+      existingUserDoc = snapshot.docs[0];
+    }
+
+    if (!existingUserDoc) {
+      snapshot = await db.collection('users').where('uid', '==', user_id).limit(1).get();
+      if (!snapshot.empty) {
+        existingUserDoc = snapshot.docs[0];
+      }
+    }
+
+    if (!existingUserDoc) {
+      snapshot = await db.collection('users').where('email', '==', email).limit(1).get();
+      if (!snapshot.empty) {
+        existingUserDoc = snapshot.docs[0];
+      }
+    }
+
+    if (existingUserDoc) {
+      const userData = existingUserDoc.data();
+      let pantryId = userData.pantry_id;
+
+      if (!pantryId) {
+        pantryId = await getNextPantryId();
+        await existingUserDoc.ref.update({ pantry_id: pantryId });
+      }
+
+      const updates = {};
+      if (displayName && !userData.displayName && !userData.name) updates.displayName = displayName;
+      if (photoURL && !userData.photoURL) updates.photoURL = photoURL;
+      if (Object.keys(updates).length > 0) {
+        await existingUserDoc.ref.update(updates);
+      }
+
+      const updatedDoc = await existingUserDoc.ref.get();
+      console.log("Sync User: Existing user found:", existingUserDoc.id, "pantry_id:", pantryId);
+      return {
+        user_document_id: existingUserDoc.id,
+        user_data: { id: existingUserDoc.id, ...updatedDoc.data(), pantry_id: pantryId }
+      };
+    }
+
+    // 2. User does not exist, create new user and pantry
+    const pantryId = await getNextPantryId();
+    const newUserRecord = {
+      user_id: user_id,
+      uid: user_id,
+      email: email,
+      name: displayName || "",
+      displayName: displayName || "",
+      photoURL: photoURL || "",
+      pantry_id: pantryId,
+      created_at: new Date(),
+      is_email_verified: isEmailVerified || false
+    };
+
+    const userRef = await db.collection('users').add(newUserRecord);
+    const userDoc = await userRef.get();
+
+    console.log("Sync User: Created new user with ID:", userRef.id, "pantry_id:", pantryId);
+
+    return {
+      user_document_id: userRef.id,
+      user_data: { id: userRef.id, ...userDoc.data() }
+    };
+  } catch (error) {
+    console.error("Error in syncUser service:", error);
+    throw new Error(`Error syncing user: ${error.message}`);
   }
 };
 

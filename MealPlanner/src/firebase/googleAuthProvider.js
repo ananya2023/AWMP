@@ -1,5 +1,4 @@
 import { GoogleAuthProvider } from "firebase/auth";
 
- const provider = new GoogleAuthProvider();
- provider.addScope('https://www.googleapis.com/auth/contacts.readonly');
- export default provider
+const provider = new GoogleAuthProvider();
+export default provider;
