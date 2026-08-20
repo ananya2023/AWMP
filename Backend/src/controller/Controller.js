@@ -6,9 +6,9 @@ exports.createUser = async (req, res) => {
   try {
   
     const { user_id, email, isEmailVerified } = req.body;
-    if (!email  || !user_id) {
+    if (!email || !user_id) {
       return res.status(400).json({ 
-        message: 'Missing required fields: email, age, user_id' 
+        message: 'Missing required fields: email, user_id' 
       });
     }
 
