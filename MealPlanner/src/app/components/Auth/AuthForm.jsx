@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star, Loader2 } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { ChefHat, Mail, Lock, Eye, EyeOff, Sparkles, TrendingUp, Users, ArrowRight, CheckCircle, Star, Loader2, User } from 'lucide-react';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../../../firebase/firebase';
 import { useNavigate } from 'react-router-dom';
 import { saveUserData } from '../../../utils/userStorage';
@@ -9,13 +9,22 @@ import { createUser, syncUser } from '../../../api/userApi';
 import GoogleButton from "./GoogleButton";
 
 const AuthForm = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const toggleAuthMode = () => {
+    setIsSignUp(!isSignUp);
+    setError('');
+    setPassword('');
+    setConfirmPassword('');
+  };
 
   const getFriendlyErrorMessage = (err) => {
     const code = err?.code;
@@ -42,24 +51,61 @@ const AuthForm = () => {
     setLoading(true);
     setError('');
 
+    if (isSignUp) {
+      if (!name.trim()) {
+        setError('Please enter your full name.');
+        setLoading(false);
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        setLoading(false);
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match. Please check and try again.');
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       let userCredential;
+      let displayNameToSync = '';
+
       if (isSignUp) {
         userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        displayNameToSync = name.trim();
+        if (displayNameToSync && userCredential.user) {
+          try {
+            await updateProfile(userCredential.user, { displayName: displayNameToSync });
+          } catch (profileErr) {
+            console.warn("Failed to set Firebase Auth display name:", profileErr);
+          }
+        }
       } else {
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+        displayNameToSync = userCredential.user.displayName || '';
       }
 
       // Sync user with backend to ensure user record & pantry_id exist
       let pantryId = null;
+      let syncedName = displayNameToSync;
+      let syncedPhoto = userCredential.user.photoURL || '';
+
       try {
         const response = await syncUser({
           user_id: userCredential.user.uid,
           email: userCredential.user.email,
+          displayName: displayNameToSync,
+          photoURL: syncedPhoto,
           isEmailVerified: userCredential.user.emailVerified
         });
+
         if (response && response.data && response.data.user_data) {
           pantryId = response.data.user_data.pantry_id;
+          syncedName = response.data.user_data.displayName || response.data.user_data.name || syncedName;
+          syncedPhoto = response.data.user_data.photoURL || syncedPhoto;
         }
       } catch (syncErr) {
         console.warn("Backend user sync warning:", syncErr);
@@ -68,6 +114,8 @@ const AuthForm = () => {
       saveUserData({
         user_id: userCredential.user.uid,
         email: userCredential.user.email,
+        displayName: syncedName,
+        photoURL: syncedPhoto,
         pantry_id: pantryId
       });
 
@@ -208,6 +256,24 @@ const AuthForm = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Full Name Field (Sign Up Only) */}
+                {isSignUp && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                        required={isSignUp}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-700">Email Address</label>
@@ -246,6 +312,24 @@ const AuthForm = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Confirm Password Field (Sign Up Only) */}
+                {isSignUp && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Confirm Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Confirm your password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-300"
+                        required={isSignUp}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Forgot Password */}
                 {!isSignUp && (
@@ -295,7 +379,7 @@ const AuthForm = () => {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setIsSignUp(!isSignUp)}
+                    onClick={toggleAuthMode}
                     className="ml-2 font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
                   >
                     {isSignUp ? 'Sign In' : 'Sign Up'}

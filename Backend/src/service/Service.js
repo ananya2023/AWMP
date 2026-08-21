@@ -130,7 +130,10 @@ exports.syncUser = async (data) => {
       }
 
       const updates = {};
-      if (displayName && !userData.displayName && !userData.name) updates.displayName = displayName;
+      if (displayName) {
+        if (!userData.displayName) updates.displayName = displayName;
+        if (!userData.name) updates.name = displayName;
+      }
       if (photoURL && !userData.photoURL) updates.photoURL = photoURL;
       if (Object.keys(updates).length > 0) {
         await existingUserDoc.ref.update(updates);
